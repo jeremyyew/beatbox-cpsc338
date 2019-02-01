@@ -30,8 +30,12 @@ start_of_assembly:
    ;  --- YOUR CODE GOES HERE ---
    ;       r24 = a, r25 = b
    ;
-
-
+   add r24,r25
+   brcs carry
+   ldi r25,0
+   rjmp end_of_assembly
+carry:
+   ldi r25,1
    ;
    ;  --- YOUR CODE ENDS ---
    ;      The result must be in the register pair r25:r24
