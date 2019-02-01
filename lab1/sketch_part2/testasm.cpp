@@ -31,6 +31,56 @@ start_of_assembly:
    ;       r24 = a, r25 = b
    ;
 
+   mov r22,r24
+   mov r24,r25
+
+   push r24
+   push r22
+   
+   rcall sumval
+   
+   mov r26,r24
+   mov r27,r25
+
+   pop r22
+   pop r24
+
+   rcall diffval
+
+   add r24,r26
+   adc r25,r27
+
+   rjmp end_of_assembly
+
+
+
+sumval:
+   ; Add values in r22 and r24
+   add r24,r22
+   
+   ; Branch if carry set
+   brcs carry
+   
+   ; Clear r25 if no carry
+   ldi r25,0
+   ret
+
+   ; Set r25 to 1 if carry
+carry:
+   ldi r25,1
+   ret
+
+diffval:
+  ldi r25,0
+  cp r24,r22
+  brge b_greater_eq
+  sub r22,r24
+  mov r24,r22
+  ret
+
+b_greater_eq:
+  sub r24,r22
+  ret
 
    ;
    ;  --- YOUR CODE ENDS ---
