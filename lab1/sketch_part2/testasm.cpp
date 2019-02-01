@@ -52,8 +52,6 @@ start_of_assembly:
 
    rjmp end_of_assembly
 
-
-
 sumval:
    ; Add values in r22 and r24
    add r24,r22
@@ -72,15 +70,20 @@ carry:
 
 diffval:
   ldi r25,0
-  cp r24,r22
-  brge b_greater_eq
+  ;cp r24,r22
+  cp r22,r24
+  brsh a_greater_eq
+  sub r24,r22
+  ret
+
+a_greater_eq:
   sub r22,r24
   mov r24,r22
   ret
 
-b_greater_eq:
-  sub r24,r22
-  ret
+;b_greater_eq:
+;  sub r24,r22
+;  ret
 
    ;
    ;  --- YOUR CODE ENDS ---
