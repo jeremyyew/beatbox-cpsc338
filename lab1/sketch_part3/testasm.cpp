@@ -29,20 +29,9 @@ start_of_assembly:
    ;
    ;  --- YOUR CODE GOES HERE ---
    ;       r24 = a, r25 = b
+   ;
 
-   ; Add values in r24 and r25
-   add r24,r25
-   
-   ; Branch if carry set
-   brcs carry
-   
-   ; Clear r25 if no carry
-   ldi r25,0
-   rjmp end_of_assembly
-   
-   ; Set r25 to 1 if carry
-carry:
-   ldi r25,1
+
    ;
    ;  --- YOUR CODE ENDS ---
    ;      The result must be in the register pair r25:r24
