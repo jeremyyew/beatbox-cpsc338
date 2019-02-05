@@ -17,7 +17,7 @@ fib:
    cpi r24, 1
    breq return
    
-   ; save to stack
+   ; save r2 and r3 to stack since it might be used by the caller. will be safe for recursive calls as well. 
    push r2
    push r3 
 
