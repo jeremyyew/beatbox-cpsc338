@@ -1,6 +1,3 @@
-int latchPin = 12;
-int clockPin = 11;
-int dataPin = 13;
 int digit = 0;
 unsigned long time;
 
@@ -17,18 +14,14 @@ char numbers[10][5] = {
   {0x06, 0x49, 0x49, 0x29, 0x1E}    // 9
 }; 
 
-
 void setup() {
-  // Set latchPin (12) to OUTPUT
-//  pinMode(latchPin, OUTPUT);
+  // Set latchPin (12) to OUTPUT (1)
   DDRB |= (1 << PB4);
 
-  // Set dataPin (13) to OUTPUT
-//  pinMode(dataPin, OUTPUT);
+  // Set dataPin (13) to OUTPUT (1)
   DDRB |= (1 << PB5);
 
-  // Set clockPin (11) to OUTPUT
-//  pinMode(clockPin, OUTPUT);
+  // Set clockPin (11) to OUTPUT (1)
   DDRB |= (1 << PB3);
 
   // Start timer for cycling through digits
@@ -36,20 +29,27 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // Scan through each column and set the rows
   for (int colNum = 0; colNum < 5; colNum++) {
-    int row = 0;
+    // Flip the bit for the corresponding column
     char col = B00011111 & ~(1 << colNum);
-     
-    digitalWrite(latchPin, LOW);
+
+    // Set latchPin (12) to LOW (0)
+    PORTB &= ~(1 << PB4);
+    
     writeVal(col);
     writeVal(numbers[digit][colNum]);
-    digitalWrite(latchPin, HIGH);
+    
+    // Set latchPin (12) to HIGH (1)
+    PORTB |= (1 << PB4);
   }
-  
+
+  // Increment digit after 1 second
   if (millis() > time + 1000) {
     time = millis();
     digit++;
+
+    // Wrap around from 9 back to 0
     if (digit > 9) {
       digit = 0;
     }
@@ -57,9 +57,19 @@ void loop() {
 }
 
 void writeVal(char value) {
-  for (int i = 0; i < 8; i++)  {  
-    digitalWrite(clockPin, LOW);       
-    digitalWrite(dataPin, !!(value & (1 << (7 - i))));    
-    digitalWrite(clockPin, HIGH);
+  // Send the data for a row
+  for (int i = 7; i >= 0; i--) {
+    // Set clockPin (11) to LOW (0)
+    PORTB &= ~(1 << PB3);
+    
+    // Set dataPin (13) to the bit at i in value
+    if (value & (1 << i)) {
+      PORTB |= (1 << PB5);
+    } else {
+      PORTB &= ~(1 << PB5);
+    }
+    
+    // Set clockPin (11) to HIGH (1)
+    PORTB |= (1 << PB3);
   }
 }
