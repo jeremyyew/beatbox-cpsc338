@@ -1,8 +1,8 @@
 int latchPin = 12;
 int clockPin = 11;
 int dataPin = 13;
-int digit = 0;
-unsigned long time;
+volatile int digit = 0;
+volatile unsigned long time;
 
 char numbers[10][5] = { {0x3E, 0x51, 0x49, 0x45, 0x3E}, // 0
   {0x00, 0x42, 0x7F, 0x40, 0x00},// 1
@@ -23,10 +23,12 @@ void setup() {
   pinMode(clockPin, OUTPUT);
   Serial.begin(9600);
   time = millis();
+
+  pinMode(2, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(2), updateDigit, FALLING);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   for (int colNum = 0; colNum < 5; colNum++) {
      int row = 0;
      char col = B00011111 & ~(1 << colNum);
@@ -36,13 +38,6 @@ void loop() {
      writeVal(numbers[digit][colNum]);
      digitalWrite(latchPin, HIGH);
   }
-  if (millis() > time + 1000) {
-    time = millis();
-    digit++;
-    if (digit > 9) {
-      digit = 0;
-    }
-  }
 }
 
 void writeVal(char value) {
@@ -50,5 +45,19 @@ void writeVal(char value) {
     digitalWrite(clockPin, LOW);       
     digitalWrite(dataPin, !!(value & (1 << (7 - i))));    
     digitalWrite(clockPin, HIGH);
+  }
+}
+
+void updateDigit() {
+  unsigned long last_trigger = time;
+  if (millis() > last_trigger + 200) {
+    time = millis();
+    digit++;
+    if (digit > 9) {
+      digit = 0;
+    }
+    Serial.print(digit);
+  } else {
+    Serial.print("ignored");
   }
 }
