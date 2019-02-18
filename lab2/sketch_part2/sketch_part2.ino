@@ -1,5 +1,5 @@
 int digit = 0;
-unsigned long time;
+unsigned long last_increment;
 
 char numbers[10][5] = { 
   {0x3E, 0x51, 0x49, 0x45, 0x3E},   // 0
@@ -25,7 +25,7 @@ void setup() {
   DDRB |= (1 << PB3);
 
   // Start timer for cycling through digits
-  time = millis();
+  last_increment = millis();
 }
 
 void loop() {
@@ -45,14 +45,12 @@ void loop() {
   }
 
   // Increment digit after 1 second
-  if (millis() > time + 1000) {
-    time = millis();
-    digit++;
+  if (millis() > last_increment + 1000) {
+    // Update last increment
+    last_increment = millis();
 
     // Wrap around from 9 back to 0
-    if (digit > 9) {
-      digit = 0;
-    }
+    digit = (digit + 1) % 10
   }
 }
 

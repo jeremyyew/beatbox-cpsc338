@@ -1,5 +1,5 @@
 volatile int digit = 0;
-volatile unsigned long time;
+volatile unsigned long last_increment;
 
 char numbers[10][5] = { 
   {0x3E, 0x51, 0x49, 0x45, 0x3E},   // 0
@@ -25,7 +25,7 @@ void setup() {
   DDRB |= (1 << PB3);
 
   // Start timer for cycling through digits
-  time = millis();
+  last_increment = millis();
 
   // Set PD2 (2) to INPUT_PULLUP for switch inputs
   pinMode(2, INPUT_PULLUP);
@@ -73,14 +73,11 @@ void writeVal(char value) {
 // Handle changes in switch state
 void updateDigit_ISR() {
   // Debounce by checking if 200 ms has passed since digit was last incremented
-  unsigned long last_trigger = time;
-  if (millis() > last_trigger + 200) {
-    time = millis();
+  if (millis() > last_increment + 200) {
+    // Update last increment
+    last_increment = millis();
 
     // Increment digit and wrap around from 9 to 0
-    digit++;
-    if (digit > 9) {
-      digit = 0;
-    }
+    digit = (digit + 1) % 10
   }
 }
