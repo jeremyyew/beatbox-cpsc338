@@ -1,5 +1,5 @@
-int digit = 0;
-unsigned long time;
+volatile int digit = 0;
+volatile unsigned long time;
 
 char numbers[10][5] = { 
   {0x3E, 0x51, 0x49, 0x45, 0x3E},   // 0
@@ -26,6 +26,13 @@ void setup() {
 
   // Start timer for cycling through digits
   time = millis();
+
+  // Set PD2 (2) to INPUT_PULLUP for switch inputs
+  pinMode(2, INPUT_PULLUP);
+
+  // Attach the ISR to handle changes in the switch state
+  // Only trigger on the falling edge
+  attachInterrupt(digitalPinToInterrupt(2), updateDigit_ISR, FALLING);
 }
 
 void loop() {
@@ -42,17 +49,6 @@ void loop() {
     
     // Set latchPin (12) to HIGH (1)
     PORTB |= (1 << PB4);
-  }
-
-  // Increment digit after 1 second
-  if (millis() > time + 1000) {
-    time = millis();
-    digit++;
-
-    // Wrap around from 9 back to 0
-    if (digit > 9) {
-      digit = 0;
-    }
   }
 }
 
@@ -71,5 +67,20 @@ void writeVal(char value) {
     
     // Set clockPin (11) to HIGH (1)
     PORTB |= (1 << PB3);
+  }
+}
+
+// Handle changes in switch state
+void updateDigit_ISR() {
+  // Debounce by checking if 200 ms has passed since digit was last incremented
+  unsigned long last_trigger = time;
+  if (millis() > last_trigger + 200) {
+    time = millis();
+
+    // Increment digit and wrap around from 9 to 0
+    digit++;
+    if (digit > 9) {
+      digit = 0;
+    }
   }
 }
