@@ -50,7 +50,7 @@ void loop() {
     last_increment = millis();
 
     // Wrap around from 9 back to 0
-    digit = (digit + 1) % 10
+    digit = (digit + 1) % 10;
   }
 }
 

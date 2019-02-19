@@ -78,6 +78,6 @@ void updateDigit_ISR() {
     last_increment = millis();
 
     // Increment digit and wrap around from 9 to 0
-    digit = (digit + 1) % 10
+    digit = (digit + 1) % 10;
   }
 }
