@@ -11,6 +11,7 @@ void setup()
 
 void loop()
 {
+    // TODO: explain implementation of analogRead()
     reading = analogRead(analogPin);
     Serial.print("reading = ");
     Serial.println(reading);
