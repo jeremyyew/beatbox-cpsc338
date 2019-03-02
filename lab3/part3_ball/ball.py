@@ -5,6 +5,7 @@ import sys
 
 class Ball():
     radius = 4
+    # IGNORE - replicating arduino drawCircle
     def drawCircle(self, x, y, radius):
         """
         Moves the turtle to the correct position and draws a circle
@@ -18,10 +19,11 @@ class Ball():
         self.turtle.circle(radius)
         self.turtle.end_fill()
 
-    # delay in ms like delay() in arduino
+    # IGNORE - replicating delay in ms like delay() in arduino
     def delay(self, x):
         time.sleep(x * 0.001)
 
+    # IGNORE - replicating arduino coordinate system and size
     def python_setup_ignore_for_arduino(self):
         self.WIDTH, self.HEIGHT = 128, 64
         root = tk.Tk()
@@ -44,20 +46,23 @@ class Ball():
         self.turtle.speed(0)
         self.screen.tracer(False)
     
+    # USE THIS
     # param: encoder_val = [0, 255] inclusive
     # return: velocity = [-26, 25] inclusive
     # encoder_val = 128 => velocity = 0
     # velocity is in 10px/sec since delay is 0.1 sec
-    # 
     def enc_val_to_vel(self, encoder_value):
         return (encoder_value - 128) // 5  # integer division
 
+    # USE THIS
     def at_left_edge(self, x, y):
         return x - self.radius <= 0
 
+    # USE THIS
     def at_right_edge(self, x, y):
         return x + self.radius >= self.WIDTH
 
+    # USE THIS
     def setup(self):
         start_x = 0
         start_y = 31
@@ -68,6 +73,7 @@ class Ball():
         # 1 => moving right, -1 => moving left
         self.direction = 1
 
+    # USE THIS
     def loop(self): 
         self.turtle.clear()
 
@@ -86,6 +92,7 @@ class Ball():
         self.delay(100)
         self.x += self.enc_val_to_vel(int(sys.argv[1])) * self.direction
 
+# IGNORE all of this stuff
 if len(sys.argv) < 2:
     print("usage: python3 ball.py encoder_value")
     print("encoder_value = [0, 255]")
