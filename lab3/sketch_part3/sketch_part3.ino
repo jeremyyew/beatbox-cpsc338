@@ -9,50 +9,44 @@
 #include <splash.h>
 
 // rotary encoder code from http://bildr.org/2012/08/rotary-encoder-arduino/
+// code to connect to oled from https://www.brainy-bits.com/connect-and-use-a-spi-oled-display/
 // adafruit graphics primitives code from https://learn.adafruit.com/adafruit-gfx-graphics-library/graphics-primitives
 
-// TODO:
-// 1. circuit diagram for part 1-3
-// 2. part 2 video 
-// 3. explain analogRead implementation part 1
-// 4. comment code for part 1-3
-// 5. part 3 debouncing?
-// 6. sources for part 1-2
-
+// chip select  
 #define OLED_CS 10
+
+// data control
 #define OLED_DC 9
 
-// Reset pin
+// reset signal
 #define OLED_RST 8
 
-// D1 pin
+// D1/SI, SPI data
 #define OLED_SI 11
 
-// D0 pin
+// SPI clock 
 #define OLED_CLK 13
 
+// Display constants
 #define DISP_WIDTH 128
 #define DISP_HEIGHT 64
 #define BALL_RADIUS 4
 
 Adafruit_SSD1306 disp(DISP_WIDTH, DISP_HEIGHT,OLED_SI,OLED_CLK,OLED_DC,OLED_RST,OLED_CS);
 
+// Rotary encoder values
 // Arduino digital pin numbers
 int encoderPin1 = 2;
 int encoderPin2 = 3;
-
 volatile int lastEncoded = 0;
 volatile long encoderValue = 128; // Starting value - corresponding to velocity = 0
-
 long lastencoderValue = 0;
-int lastMSB = 0;
-int lastLSB = 0;
+volatile unsigned long lastChangeTime;
 
 // Positioning and movement of ball
 int x;
 int y;
 int direction;
-char msg[3];
 
 void setup() {
   Serial.begin (9600);
@@ -108,20 +102,12 @@ int getVelocity() {
   return (encoderValue - 128) / 5;
 }
 
-int at_left_edge(int x, int y) {
-  if (x - BALL_RADIUS <= 0) {
-    return 1;
-  } else {
-    return 0;
-  }
+bool at_left_edge(int x, int y) {
+  return (x - BALL_RADIUS <= 0);
 }
 
-int at_right_edge(int x, int y) {
-  if (x + BALL_RADIUS >= DISP_WIDTH) {
-    return 1;
-  } else {
-    return 0;
-  }
+bool at_right_edge(int x, int y) {
+  return (x + BALL_RADIUS >= DISP_WIDTH);
 }
 
 void updateEncoder(){
@@ -131,15 +117,13 @@ void updateEncoder(){
   int encoded = (MSB << 1) | LSB; //converting the 2 pin values to 2 bit number
   int sum = (lastEncoded << 2) | encoded; // adding it to the previous encoded value 
 
-  // Checking valid transition states
-  // TODO: is this clockwise or counter-clockwise?
+  // Checking valid transition states for counter-clockwise rotation
   if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) {
     encoderValue++;
     encoderValue = constrain(encoderValue, 0, 255); // Saturating end points
   }
 
-  // Checking valid transition states
-  // TODO: is this clockwise or counter-clockwise?
+  // Checking valid transition states for clockwise rotation
   if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) {
     encoderValue--; 
     encoderValue = constrain(encoderValue, 0, 255); // Saturating end points
