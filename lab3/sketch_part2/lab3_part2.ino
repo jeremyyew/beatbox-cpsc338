@@ -1,11 +1,9 @@
 // TODO:
-// 1. circuit diagram for part 1-3
-// 2. part 2 video 
-// 3. explain analogRead implementation part 1
-// 4. comment code for part 1-3
-// 5. part 3 debouncing?
-// 6. sources for part 1-2
-
+// 1. Kristina: circuit part 3, explain analogRead implementation part 1
+// 2. Jeremy: reconstruct part 2, circuit part 2
+// tmr 810-910pm: 
+// 3. part 2 video 
+// 4. comment code and sources for part 1-2
 
 int trigPin = 12;
 int echoPin = 13;
