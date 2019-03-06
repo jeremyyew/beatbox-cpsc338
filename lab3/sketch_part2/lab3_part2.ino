@@ -1,9 +1,8 @@
 // TODO:
-// 1. Kristina: circuit part 3, explain analogRead implementation part 1
-// 2. Jeremy: reconstruct part 2, circuit part 2
-// tmr 810-910pm: 
+// 2. Jeremy: circuit part 2
 // 3. part 2 video 
-// 4. comment code and sources for part 1-2
+
+// Rangefinder code referenced from http://www.circuitbasics.com/how-to-set-up-an-ultrasonic-range-finder-on-an-arduino/
 
 int trigPin = 12;
 int echoPin = 13;
@@ -24,15 +23,12 @@ void setup() {
 void loop() {
   reading = analogRead(analogPin);
 
-  // Starting range at reading = 200 
-  // since we don't usually observe readings below 200
-  brightness = map(reading, 200, 1023, 255, 0);
-  brightness = constrain(brightness, 0, 255);
+  brightness = map(reading, 0, 1023, 255, 0);
+  // brightness = constrain(brightness, 0, 255); 
   Serial.print("reading = ");
   Serial.println(reading);
   Serial.print("brightness = ");
   Serial.println(brightness);
-//  analogWrite(blueLED, brightness);
   
   float duration, distance;
   digitalWrite(trigPin, LOW); 
@@ -42,31 +38,30 @@ void loop() {
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
   
+  // Distance in cm is one-way duration (in microsecond) times speed of sound (in cm per microsecond),
   duration = pulseIn(echoPin, HIGH);
-//  Serial.print("Duration = ");
-//  Serial.print(duration);
-//  Serial.print(" microseconds - ");
-  
   distance = (duration / 2) * 0.0344;
 
-  distance = constrain(distance, 2, 400);
+  // Convert distance to percentage of max distance. 
   int distance_range = 400 - 2;
   float distance_p = distance/(distance_range * 1.0);
+
+  // Calculate proportion of red and green values, which should sum to inv_bright. Red is far, green is close. 
   int inv_bright = 255 - brightness;
   int inv_red = distance_p * inv_bright;
   int inv_green = (1 - distance_p) * inv_bright;
   
-//  float green_p = 1 - red_p;
-
   int red_output = 255 - inv_red;
   int green_output = 255 - inv_green;
   analogWrite(redLED, red_output);
   analogWrite(greenLED, green_output);
+
   Serial.print("red = ");
   Serial.println(red_output);
   Serial.print("green = ");
   Serial.println(green_output);
   
+  // This is the effective range of the rangefinder
   if (distance >= 400 || distance <= 2){
     Serial.print("Distance = ");
     Serial.println("Out of range");
@@ -75,8 +70,7 @@ void loop() {
     Serial.print("Distance = ");
     Serial.print(distance);
     Serial.println(" cm");
-    delay(500);
   }
   Serial.println();
-  delay(100);
+  delay(500);
 }
