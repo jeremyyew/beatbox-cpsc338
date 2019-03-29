@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include "concurrency.h"
 
+struct process_state {
+        unsigned int sp; /* stack pointer */
+        struct process_state *next; /* link to next process */
+   };
+
 process_t *current_process;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
