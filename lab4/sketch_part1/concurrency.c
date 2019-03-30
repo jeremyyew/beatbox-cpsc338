@@ -180,59 +180,78 @@ unsigned int process_init (void (*f) (void), int n)
 
   return stk;
 }
-// TODO
+
 int process_create (void (*f)(void), int n) {
-	//  sp = process_init(f, n) 
-	// check if 0 then return -1
-	// new_process = malloc proccess_t 
-	// if queue_head is null: 
-			// queue_head = new_p
-	// else: 
-			// queue_tail.next = new_p
-	// queue_tail = new_p
+	// Allocate stack space for new process
+	int sp = process_init(f, n);
+	
+	// Return error if failed to allocate stack space for new process
+	if (sp == 0) {
+		return -1;
+	}
+
+	// Create linked list node for new process
+	process_t *new_process = (process_t *) malloc(sizeof(process_t));
+
+	// Check if queue is empty and adding first node
+	if (queue_head == NULL) {
+		queue_head = new_process;
+	} 
+	// Otherwise append to end of queue
+	else {
+		queue_tail->next = new_process;
+	}
+	// Set end of queue to the new node
+	queue_tail = new_process;
+
+	return 0;
 }
 
-// TODO
 void process_start (void) {
-	// set cp to q_head
-	// q_head = null
-	// process_begin()
+	// Set current_process to the head of the already built queue
+	current_process = queue_head;
+	
+	// Clear reference to beginning of queue, since unused and will be freed
+	queue_head = NULL;
+	
+	// Indirectly call process select
+	process_begin();
 }
 
 // TODO
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
-	// nothing in the queue
-	if curr_p == null:
-		// no running process
-		if cursp == 0:
-			return 0
-		// only one running process
-		else:
-			return cursp
+	// Nothing in the queue
+	if (current_process == NULL) {
+		// No running process
+		if (cursp == 0) {
+			return 0;
+		}
+		// Some running process
+		else {
+			return cursp;
+		}
+	}
 
-	// something in the queue
-	// some running process, so append interrupted process to queue
-	if cursp != 0:
-		new_tail = malloc(process_t *)
-		new_tail.sp = cursp
-		new_tail.next = NULL
-		QT.next = new_tail
-		QT = new_tail
+	// Something in the queue
+	// Some running process, so append interrupted process to queue
+	if (cursp != 0) {
+		process_t *new_tail = (process_t *) malloc(sizeof(process_t));
+		new_tail->sp = cursp;
+		new_tail->next = NULL;
+		queue_tail->next = new_tail;
+		queue_tail = new_tail;
+	} // Else no running process, so nothing to append
 
-	// else no running process, so nothing to append
-	
-	// pop next process to run
-	next_sp = curr_p.sp
-	old_curr_p = curr_p
-	curr_p = curr_p.next
-	free old_curr_p
+	// Pop next process to run
+	int next_sp = current_process->sp;
+	process_t *old_curr_p = current_process;
+	current_process = current_process->next;
+	free(old_curr_p);
 
 	// check if we emptied the queue
-	if curr_p == null:
-		QT = null
+	if (current_process == NULL) {
+		queue_tail = NULL;
+	}
 
-	return next_sp
-
-		
-
+	return next_sp;
 }
