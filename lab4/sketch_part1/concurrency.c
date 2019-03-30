@@ -7,7 +7,8 @@ struct process_state {
         unsigned int sp; /* stack pointer */
         struct process_state *next; /* link to next process */
    };
-
+process_t *queue_head;
+process_t *queue_tail;
 process_t *current_process;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
@@ -179,12 +180,38 @@ unsigned int process_init (void (*f) (void), int n)
 
   return stk;
 }
+// TODO
+int process_create (void (*f)(void), int n) {
+	//  sp = process_init(f, n) 
+	// check if 0 then return -1
+	// new_process = malloc proccess_t 
+	// if queue_head is null: 
+			// queue_head = new_p
+	// else: 
+			// queue_tail.next = new_p
+	// queue_tail = new_p
+}
 
 // TODO
-void process_start (void) {}
+void process_start (void) {
+	// set cp to q_head
+	// process_begin()
+}
 
 // TODO
-int process_create (void (*f)(void), int n) {}
-
-// TODO
-__attribute__((used)) unsigned int process_select (unsigned int cursp) {}
+__attribute__((used)) unsigned int process_select (unsigned int cursp) {
+	// if curr_proc is null: (we did not create any processes)
+		// return 0 
+	// next = curr_proc.next 
+	// if next is null: (one process only)
+		// if cursp != 0: () 
+			// curr_proc.sp = cursp (just update stack pointer)
+	// else next is not null: (there is something to go to)
+		// if cursp != 0: () 
+			// curr_proc.sp = cursp
+			// curr_proc.next = null
+			// queue_tail.next = curr_proc
+			// queue_tail = curr_proc 
+	// curr_proc = next
+	// return curr_proc.sp
+}
