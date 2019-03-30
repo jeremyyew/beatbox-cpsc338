@@ -1,16 +1,64 @@
 #include "concurrency.h"
 
+// RGB pins mapped to digital pins 11, 10, 9 respectively
+int redLED = 11;
+int greenLED = 10;
+int blueLED = 9;
+int red_output = 100;
+int green_output = 100;
+  
+
 void p1 (void)
 {
   /* process 1 here */
-  Serial.println("p1");
+  while (1) {
+//    analogWrite(redLED, red_output);
+    delay(500);
+    analogWrite(redLED, 255);
+    delay(500);
+//    Serial.print("1");
+  }
+
+//  int iteration = 0;
+//  while (1) {
+//    for (int i = 0; i < 5000;) {
+//      i += 1;
+//    }
+//    if (iteration % 2 == 0) {
+//      analogWrite(redLED, 255);
+//    } else {
+//      analogWrite(redLED, red_output);
+//    }
+//    iteration += 1;
+//  }
+  
   return;
 }
 
 void p2 (void)
 {
 /* process 2 here */
-  Serial.println("p1");
+  while (1) {
+    analogWrite(greenLED, green_output);
+    delay(1000);
+    analogWrite(greenLED, 255);
+    delay(1000);
+//    Serial.print("2");
+  }
+
+//  int iteration = 0;
+//  while (1) {
+//    for (int i = 0; i < 30000;) {
+//      i += 1;
+//    }
+//    if (iteration % 2 == 0) {
+//      analogWrite(greenLED, 255);
+//    } else {
+//      analogWrite(greenLED, green_output);
+//    }
+//    iteration += 1;
+//  }
+//  
   return;
 }
 

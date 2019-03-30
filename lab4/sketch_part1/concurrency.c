@@ -7,9 +7,9 @@ struct process_state {
         unsigned int sp; /* stack pointer */
         struct process_state *next; /* link to next process */
    };
-process_t *queue_head;
-process_t *queue_tail;
-process_t *current_process;
+process_t *queue_head = NULL;
+process_t *queue_tail = NULL;
+process_t *current_process = NULL;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
 __attribute__((used)) void process_begin ()
@@ -192,6 +192,8 @@ int process_create (void (*f)(void), int n) {
 
 	// Create linked list node for new process
 	process_t *new_process = (process_t *) malloc(sizeof(process_t));
+	new_process->sp = sp;
+	new_process->next = NULL;
 
 	// Check if queue is empty and adding first node
 	if (queue_head == NULL) {
