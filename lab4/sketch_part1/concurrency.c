@@ -195,23 +195,44 @@ int process_create (void (*f)(void), int n) {
 // TODO
 void process_start (void) {
 	// set cp to q_head
+	// q_head = null
 	// process_begin()
 }
 
 // TODO
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
-	// if curr_proc is null: (we did not create any processes)
-		// return 0 
-	// next = curr_proc.next 
-	// if next is null: (one process only)
-		// if cursp != 0: () 
-			// curr_proc.sp = cursp (just update stack pointer)
-	// else next is not null: (there is something to go to)
-		// if cursp != 0: () 
-			// curr_proc.sp = cursp
-			// curr_proc.next = null
-			// queue_tail.next = curr_proc
-			// queue_tail = curr_proc 
-	// curr_proc = next
-	// return curr_proc.sp
+	// nothing in the queue
+	if curr_p == null:
+		// no running process
+		if cursp == 0:
+			return 0
+		// only one running process
+		else:
+			return cursp
+
+	// something in the queue
+	// some running process, so append interrupted process to queue
+	if cursp != 0:
+		new_tail = malloc(process_t *)
+		new_tail.sp = cursp
+		new_tail.next = NULL
+		QT.next = new_tail
+		QT = new_tail
+
+	// else no running process, so nothing to append
+	
+	// pop next process to run
+	next_sp = curr_p.sp
+	old_curr_p = curr_p
+	curr_p = curr_p.next
+	free old_curr_p
+
+	// check if we emptied the queue
+	if curr_p == null:
+		QT = null
+
+	return next_sp
+
+		
+
 }
