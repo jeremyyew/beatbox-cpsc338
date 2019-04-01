@@ -12,7 +12,7 @@ void p1 (void)
 {
   /* process 1 here */
   while (1) {
-//    analogWrite(redLED, red_output);
+   analogWrite(redLED, red_output);
     delay(500);
     analogWrite(redLED, 255);
     delay(500);

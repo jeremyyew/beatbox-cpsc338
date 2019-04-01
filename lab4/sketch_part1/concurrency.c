@@ -10,6 +10,7 @@ struct process_state {
 process_t *queue_head = NULL;
 process_t *queue_tail = NULL;
 process_t *current_process = NULL;
+process_t *spare = NULL;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
 __attribute__((used)) void process_begin ()
@@ -212,6 +213,10 @@ int process_create (void (*f)(void), int n) {
 void process_start (void) {
 	// Set current_process to the head of the already built queue
 	current_process = queue_head;
+
+	spare = (process_t *) malloc(sizeof(process_t));
+	spare->sp = 0;
+	spare->next = NULL;
 	
 	// Clear reference to beginning of queue, since unused and will be freed
 	queue_head = NULL;
@@ -237,7 +242,8 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 	// Something in the queue
 	// Some running process, so append interrupted process to queue
 	if (cursp != 0) {
-		process_t *new_tail = (process_t *) malloc(sizeof(process_t));
+		// process_t *new_tail = (process_t *) malloc(sizeof(process_t));
+		process_t *new_tail = spare;
 		new_tail->sp = cursp;
 		new_tail->next = NULL;
 		queue_tail->next = new_tail;
@@ -248,7 +254,8 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 	int next_sp = current_process->sp;
 	process_t *old_curr_p = current_process;
 	current_process = current_process->next;
-	free(old_curr_p);
+	// free(old_curr_p);
+	spare = old_curr_p;
 
 	// check if we emptied the queue
 	if (current_process == NULL) {
