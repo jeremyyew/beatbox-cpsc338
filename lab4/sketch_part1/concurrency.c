@@ -245,22 +245,18 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 	// Something in the queue
 	// Some running process, so append interrupted process to queue
 	if (cursp != 0) {
-		// process_t *new_tail = (process_t *) malloc(sizeof(process_t));
 		process_t *new_tail = spare;
 		new_tail->sp = cursp;
 		new_tail->next = NULL;
-		// if (queue_tail != NULL) {
-			queue_tail->next = new_tail;
-		// }
+		queue_tail->next = new_tail;
 		queue_tail = new_tail;
 	} // Else no running process, so nothing to append
 
 	// Pop next process to run
 	int next_sp = current_process->sp;
-	process_t *old_curr_p = current_process;
+	spare = current_process;
 	current_process = current_process->next;
-	// free(old_curr_p);
-	spare = old_curr_p;
+	// spare = old_curr_p;
 
 	// check if we emptied the queue
 	if (current_process == NULL) {
