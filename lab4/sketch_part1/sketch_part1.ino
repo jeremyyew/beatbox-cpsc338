@@ -13,14 +13,9 @@ void p1 (void)
   /* process 1 here */
   while (1) {
     analogWrite(redLED, red_output);
-//    delay(1000);
-    for (int i = 0; i < 20000;) {
-      i += 1;
-    }
+    delay(500);
     analogWrite(redLED, 255);
-        for (int i = 0; i < 20000;) {
-      i += 1;
-    }
+    delay(500);
 //    delay(1000);
 //    Serial.print("1");
   }
@@ -46,16 +41,9 @@ void p2 (void)
 /* process 2 here */
   while (1) {
     analogWrite(greenLED, green_output);
-    for (int i = 0; i < 20000;) {
-      i += 1;
-    }
-//    delay(250);
+    delay(500);
     analogWrite(greenLED, 255);
-        for (int i = 0; i < 20000;) {
-      i += 1;
-    }
-//    delay(500);
-//    Serial.print("2");
+    delay(500);
   }
 
 //  int iteration = 0;
