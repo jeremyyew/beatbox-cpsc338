@@ -12,10 +12,16 @@ void p1 (void)
 {
   /* process 1 here */
   while (1) {
-//    analogWrite(redLED, red_output);
-    delay(500);
+    analogWrite(redLED, red_output);
+//    delay(1000);
+    for (int i = 0; i < 20000;) {
+      i += 1;
+    }
     analogWrite(redLED, 255);
-    delay(500);
+        for (int i = 0; i < 20000;) {
+      i += 1;
+    }
+//    delay(1000);
 //    Serial.print("1");
   }
 
@@ -40,9 +46,15 @@ void p2 (void)
 /* process 2 here */
   while (1) {
     analogWrite(greenLED, green_output);
-    delay(1000);
+    for (int i = 0; i < 20000;) {
+      i += 1;
+    }
+//    delay(250);
     analogWrite(greenLED, 255);
-    delay(1000);
+        for (int i = 0; i < 20000;) {
+      i += 1;
+    }
+//    delay(500);
 //    Serial.print("2");
   }
 
@@ -64,21 +76,25 @@ void p2 (void)
 
 void setup()
 {
-  Serial.begin(9600);
+//  Serial.begin(9600);
   if (process_create (p1, 64) < 0) {
     return;
+  } else {
+//    analogWrite(blueLED, 100);
   }
-  Serial.println("Done creating p1");
+//  Serial.println("Done creating p1");
   if (process_create (p2, 64) < 0) {
     return;
+  } else {
+//    analogWrite(greenLED, 100);
   }
-  Serial.println("Done creating p2");
+//  Serial.println("Done creating p2");
 }
 
 void loop()
 {
   process_start();
-  Serial.println("Processes done");
+//  Serial.println("Processes done");
   /* if you get here, then all processes are either finished or
      there is deadlock */
   while (1) ;

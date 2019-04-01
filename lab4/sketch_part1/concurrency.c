@@ -192,6 +192,9 @@ int process_create (void (*f)(void), int n) {
 
 	// Create linked list node for new process
 	process_t *new_process = (process_t *) malloc(sizeof(process_t));
+	if (new_process == NULL) {
+		return -1;
+	}
 	new_process->sp = sp;
 	new_process->next = NULL;
 
@@ -238,9 +241,16 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 	// Some running process, so append interrupted process to queue
 	if (cursp != 0) {
 		process_t *new_tail = (process_t *) malloc(sizeof(process_t));
+		// Failed malloc, so terminate
+		if (new_tail == NULL) {
+			// return 0;
+		}
+
 		new_tail->sp = cursp;
 		new_tail->next = NULL;
-		queue_tail->next = new_tail;
+		// if (queue_tail != NULL) {
+			queue_tail->next = new_tail;
+		// }
 		queue_tail = new_tail;
 	} // Else no running process, so nothing to append
 
