@@ -18,7 +18,6 @@ typedef struct process_state process_t;
       implementation.
    */
 
-struct lock_state lock_t;
 
 /*------------------------------------------------------------------------
 
@@ -48,10 +47,11 @@ int process_create (void (*f)(void), int n);
 
 typedef struct lock_state lock_t;
   /* you have to define the lock_state structure */
+extern lock_t *lock; 
 
 void lock_init (lock_t *l);
-void lock_acquire (lock_t *l);
-void lock_release (lock_t *l);
+__attribute__((used)) void lock_acquire (lock_t *l);
+__attribute__((used)) void lock_release (lock_t *l);
 
 
 /*-- functions provided in the .c file --*/
@@ -65,6 +65,3 @@ void yield ();
 #endif
 
 #endif /* __CONCURRENCY_H__ */
-
-
-

@@ -256,7 +256,6 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 	int next_sp = current_process->sp;
 	spare = current_process;
 	current_process = current_process->next;
-	// spare = old_curr_p;
 
 	// check if we emptied the queue
 	if (current_process == NULL) {

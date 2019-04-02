@@ -3,11 +3,24 @@
 #include <stdlib.h>
 #include "concurrency.h"
 
+// Possible issues: 
+// 1. lock should be malloc'ed in lock_init, not referenced as a global variable
+// 2. Mutexing of lock_acquire is not working. Somehow p2 can start after p1 started and before p1 ends. 
+// 3. Lock implementation does not prevent waiting processes from being re-queued as ready. Need to check process select.
+
 struct process_state {
         unsigned int sp; /* stack pointer */
         struct process_state *next; /* link to next process */
+				int waiting;
    };
 
+struct lock_state {
+	int acquired; 
+	struct process_state *q_head;
+	struct process_state *q_tail;
+};
+
+lock_t *lock = NULL;
 process_t *queue_head = NULL;
 process_t *queue_tail = NULL;
 process_t *current_process = NULL;
@@ -199,6 +212,7 @@ int process_create (void (*f)(void), int n) {
 	}
 	new_process->sp = sp;
 	new_process->next = NULL;
+	new_process->waiting = 0;
 
 	// Check if queue is empty and adding first node
 	if (queue_head == NULL) {
@@ -214,79 +228,96 @@ int process_create (void (*f)(void), int n) {
 	return 0;
 }
 
-void process_start (void) {
-	// Set current_process to the head of the already built queue
-	current_process = queue_head;
-
-	spare = (process_t *) malloc(sizeof(process_t));
-	spare->sp = 0;
-	spare->next = NULL;
-	
-	// Clear reference to beginning of queue, since unused and will be freed
-	queue_head = NULL;
-	
+void process_start (void) {	
 	// Indirectly call process select
 	process_begin();
 }
 
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 	// Nothing in the queue
-	if (current_process == NULL) {
+	if (queue_head == NULL) {
 		// No running process
 		if (cursp == 0) {
 			return 0;
 		}
 		// Some running process
 		else {
+			if (current_process->waiting == 1) {
+				return 0;
+			}
+			current_process->sp = cursp;
 			return cursp;
 		}
-	}
+	}	
+	// Else something in the queue
 
-	// Something in the queue
-	// Some running process, so append interrupted process to queue
-	if (cursp != 0) {
-		process_t *new_tail = spare;
-		new_tail->sp = cursp;
-		new_tail->next = NULL;
-		queue_tail->next = new_tail;
-		queue_tail = new_tail;
-	} // Else no running process, so nothing to append
-
+	// Some running process, so append interrupted process to queue. We also check if current_process is waiting.
+	if (cursp != 0 && current_process->waiting == 0) {
+		current_process->sp = cursp;
+		queue_tail->next = current_process;
+		queue_tail = current_process;
+	} 
+	
 	// Pop next process to run
-	int next_sp = current_process->sp;
-	spare = current_process;
-	current_process = current_process->next;
-	// spare = old_curr_p;
+	current_process = queue_head;
+	queue_head = queue_head->next;
+	current_process->next = NULL;
 
-	// check if we emptied the queue
-	if (current_process == NULL) {
+	// Check if we emptied the queue, update tail as necessary. 
+	if (queue_head == NULL) {
 		queue_tail = NULL;
 	}
 
-	return next_sp;
+	return current_process->sp;
 }
-
-struct lock_state {
-	int acquired; 
-	process_t *q_head;
-	process_t *q_tail;
-};
 
 void lock_init (lock_t *l) {
-	l->acquired = 0;
-	l->q_head = NULL;
-	l->q_tail = NULL;
+	lock = (lock_t *) malloc(sizeof(lock_t));
+	lock->acquired = 0;
+	lock->q_head = NULL;
+	lock->q_tail = NULL;
 }
 
-void lock_acquire (lock_t *l) {
-	while (l->acquired == 1){
+__attribute__((used)) void lock_acquire (lock_t *l) {
+	int acquired = 0;
+	asm volatile ("cli \n\t");
+	if (l->acquired == 0) {
+		l->acquired = 1;
+		acquired = 1;
+	}
+	asm volatile ("sei \n\t");
+	while (acquired == 0) {
+		if (l->q_head == NULL) {
+			l->q_head = current_process;
+			l->q_tail = current_process;
+		} else {
+			l->q_tail->next = current_process;
+			l->q_tail = current_process;
+		}
+		// process_select will check if current process is waiting, and if so it won't queue it 
+		current_process->waiting = 1;
+		// current_process = NULL; 
 		yield();
-		l->q_head = current_process;
-		l->q_head = current_process;
-	};
-	l->acquired = 1;
+	} 
 }
 
-void lock_release (lock_t *l) {
+__attribute__((used)) void lock_release (lock_t *l) {
+	// If there is anybody waiting, pop the head of this lock's waiting queue onto the ready queue. TODO: 
+	if (l->q_head != NULL) {
+		process_t *next = l->q_head->next;
+		l->q_head->waiting = 0;
+		// Empty queue
+		if (queue_tail == NULL) {
+			queue_head = l->q_head;
+			queue_tail = l->q_head;
+		} else {
+			queue_tail->next = l->q_head;
+			queue_tail = queue_tail->next;
+		}
+		l->q_head = next;
+	}
+	// Release the lock. 
+	// asm volatile ("cli \n\t");
 	l->acquired = 0;
-};
+	// asm volatile ("sei \n\t");
+}
