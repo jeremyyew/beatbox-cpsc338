@@ -242,9 +242,9 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 		}
 		// Some running process
 		else {
-			if (current_process->waiting == 1) {
-				return 0;
-			}
+			// if (current_process->waiting == 1) {
+			// 	return 0;
+			// }
 			current_process->sp = cursp;
 			return cursp;
 		}
@@ -302,7 +302,7 @@ __attribute__((used)) void lock_acquire (lock_t *l) {
 }
 
 __attribute__((used)) void lock_release (lock_t *l) {
-	// If there is anybody waiting, pop the head of this lock's waiting queue onto the ready queue. TODO: 
+	// If there is anybody waiting, pop the head of this lock's waiting queue onto the ready queue. 
 	if (l->q_head != NULL) {
 		process_t *next = l->q_head->next;
 		l->q_head->waiting = 0;

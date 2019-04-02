@@ -10,30 +10,34 @@ int green_output = 100;
 void p1 (void)
 {
   while (1) {
+    Serial.print("p1 acquiring...\n");
     lock_acquire(lock);
     // Serial.print(lock->acquired);
-    Serial.print("p1 start\n");
+    Serial.print("p1 acquired\n");
     analogWrite(redLED, red_output);
     delay(500);
     analogWrite(redLED, 255);
     delay(500);
     Serial.print("p1 end\n");
     lock_release(lock);
+    Serial.print("p1 released\n");
   }
 }
 
 void p2 (void)
 {
   while (1) {
+    Serial.print("p2 acquiring...\n");
     lock_acquire(lock);
     // Serial.print(lock->acquired);
-    Serial.print("p2 start\n");
+    Serial.print("p2 acquired\n");
     analogWrite(greenLED, green_output);
     delay(1000);
     analogWrite(greenLED, 255);
     delay(1000);
     Serial.print("p2 end\n");
     lock_release(lock);
+    Serial.print("p2 released\n");
   }
 }
 
