@@ -46,8 +46,13 @@ int process_create (void (*f)(void), int n);
 /* ===== Part 2 ====== */
 
 typedef struct lock_state lock_t;
-  /* you have to define the lock_state structure */
-extern lock_t *lock; 
+
+/* define the lock_state structure */
+struct lock_state {
+  int acquired; 
+  struct process_state *q_head;
+  struct process_state *q_tail;
+};
 
 void lock_init (lock_t *l);
 __attribute__((used)) void lock_acquire (lock_t *l);

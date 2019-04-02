@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <stdlib.h>
 #include "concurrency.h"
 
@@ -11,16 +12,9 @@
 struct process_state {
         unsigned int sp; /* stack pointer */
         struct process_state *next; /* link to next process */
-				int waiting;
+				lock_t *waiting;
    };
 
-struct lock_state {
-	int acquired; 
-	struct process_state *q_head;
-	struct process_state *q_tail;
-};
-
-lock_t *lock = NULL;
 process_t *queue_head = NULL;
 process_t *queue_tail = NULL;
 process_t *current_process = NULL;
@@ -212,7 +206,7 @@ int process_create (void (*f)(void), int n) {
 	}
 	new_process->sp = sp;
 	new_process->next = NULL;
-	new_process->waiting = 0;
+	new_process->waiting = NULL;
 
 	// Check if queue is empty and adding first node
 	if (queue_head == NULL) {
@@ -251,11 +245,23 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 	}	
 	// Else something in the queue
 
-	// Some running process, so append interrupted process to queue. We also check if current_process is waiting.
-	if (cursp != 0 && current_process->waiting == 0) {
-		current_process->sp = cursp;
-		queue_tail->next = current_process;
-		queue_tail = current_process;
+	// Some running process, so check which queue to append to based on if its waiting or not
+	if (cursp != 0) {
+		current_process->sp = cursp;		// Save current stack pointer as starting point when next run
+		// Current process is not waiting on any lock, so append to ready queue
+		if (current_process->waiting == NULL) {
+			queue_tail->next = current_process;
+			queue_tail = current_process;
+		} else {		// Current process is waiting so add to lock's waiting queue
+			lock_t *l = current_process->waiting;
+			if (l->q_head == NULL) {
+				l->q_head = current_process;
+				l->q_tail = current_process;
+			} else {
+				l->q_tail->next = current_process;
+				l->q_tail = current_process;
+			}
+		}
 	} 
 	
 	// Pop next process to run
@@ -272,40 +278,71 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 }
 
 void lock_init (lock_t *l) {
-	lock = (lock_t *) malloc(sizeof(lock_t));
-	lock->acquired = 0;
-	lock->q_head = NULL;
-	lock->q_tail = NULL;
+	l->acquired = 0;
+	l->q_head = NULL;
+	l->q_tail = NULL;
 }
 
 __attribute__((used)) void lock_acquire (lock_t *l) {
-	int acquired = 0;
-	asm volatile ("cli \n\t");
-	if (l->acquired == 0) {
-		l->acquired = 1;
-		acquired = 1;
-	}
-	asm volatile ("sei \n\t");
-	while (acquired == 0) {
-		if (l->q_head == NULL) {
-			l->q_head = current_process;
-			l->q_tail = current_process;
-		} else {
-			l->q_tail->next = current_process;
-			l->q_tail = current_process;
-		}
-		// process_select will check if current process is waiting, and if so it won't queue it 
-		current_process->waiting = 1;
-		// current_process = NULL; 
+	cli();
+	while (l->acquired == 1) {
+		current_process->waiting = l;
+		sei();
 		yield();
-	} 
+	}
+
+	l->acquired = 1;
+	sei();
+	return;
+
+	// while (1) {
+	// 	cli();
+	// 	if (l->acquired == 0) {
+	// 		l->acquired = 1;
+	// 		sei();
+	// 		return;
+	// 	}
+	// 	sei();
+
+	// 	// process_select will check if current process is waiting, and if so it won't queue it 
+	// 	current_process->waiting = l;
+	// 	// current_process = NULL; 
+	// 	yield();
+	// } 
 }
+
+// __attribute__((used)) void lock_acquire (lock_t *l) {
+// 	int acquired = 0;
+// 	cli();
+// 	if (l->acquired == 0) {
+// 		l->acquired = 1;
+// 		acquired = 1;
+// 	}
+// 	sei();
+// 	while (l->acquired == 1) {
+// 		if (l->q_head == NULL) {
+// 			l->q_head = current_process;
+// 			l->q_tail = current_process;
+// 		} else {
+// 			l->q_tail->next = current_process;
+// 			l->q_tail = current_process;
+// 		}
+// 		// process_select will check if current process is waiting, and if so it won't queue it 
+// 		current_process->waiting = 1;
+// 		// current_process = NULL; 
+// 		yield();
+// 	} 
+// }
 
 __attribute__((used)) void lock_release (lock_t *l) {
 	// If there is anybody waiting, pop the head of this lock's waiting queue onto the ready queue. 
 	if (l->q_head != NULL) {
+		cli();
 		process_t *next = l->q_head->next;
-		l->q_head->waiting = 0;
+	
+		l->acquired = 0;
+		l->q_head->waiting = NULL;
+		
 		// Empty queue
 		if (queue_tail == NULL) {
 			queue_head = l->q_head;
@@ -315,9 +352,15 @@ __attribute__((used)) void lock_release (lock_t *l) {
 			queue_tail = queue_tail->next;
 		}
 		l->q_head = next;
+		sei();
+	} else {
+		l->acquired = 0;
 	}
+	// yield so the just queued process can try to acquire the lock to be fair
+	yield();
+
 	// Release the lock. 
 	// asm volatile ("cli \n\t");
-	l->acquired = 0;
+	
 	// asm volatile ("sei \n\t");
 }

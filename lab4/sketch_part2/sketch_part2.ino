@@ -7,20 +7,24 @@ int blueLED = 9;
 int red_output = 100;
 int green_output = 100;
 
+lock_t *lock = NULL;
+
 void p1 (void)
 {
   while (1) {
     Serial.print("p1 acquiring...\n");
     lock_acquire(lock);
+    
     // Serial.print(lock->acquired);
     Serial.print("p1 acquired\n");
     analogWrite(redLED, red_output);
-    delay(500);
+    delay(1000);
     analogWrite(redLED, 255);
-    delay(500);
+    delay(1000);
     Serial.print("p1 end\n");
     lock_release(lock);
     Serial.print("p1 released\n");
+//    delay(1000);
   }
 }
 
@@ -38,6 +42,7 @@ void p2 (void)
     Serial.print("p2 end\n");
     lock_release(lock);
     Serial.print("p2 released\n");
+//    delay(1000);
   }
 }
 
@@ -58,8 +63,13 @@ void p2 (void)
 
 void setup()
 {
-  lock_init(lock);
   Serial.begin(9600);
+  lock = (lock_t *) malloc(sizeof(lock_t));
+  if (lock == NULL) {
+    analogWrite(blueLED, 100);
+  }
+  lock_init(lock);
+
   if (process_create (p1, 64) < 0) {
     return;
   } 
