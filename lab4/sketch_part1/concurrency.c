@@ -3,9 +3,15 @@
 #include <stdlib.h>
 #include "concurrency.h"
 
+/*
+We initialize the created processes in the ready queue and store references to them in the globals queue_head and queue_tail. When selecting a process, we first append the currently running process (if any) to the back of the queue with the current stack pointer (to save its progress), and pop the next process from the queue. 
+If there is nothing in the queue, and the currently running process is not done we simply continue running the current process by returning the new stack pointer. 
+If there is nothing in the queue, and the currently running process is done then we are done with all processes. 
+*/
+
 struct process_state
 {
-	unsigned int sp;						/* stack pointer */
+	unsigned int sp;			/* stack pointer */
 	struct process_state *next; /* link to next process */
 };
 
@@ -17,27 +23,27 @@ __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 __attribute__((used)) void process_begin()
 {
 	asm volatile(
-			"cli \n\t"
-			"in r24,__SP_L__ \n\t"
-			"sts _orig_sp_lo, r24\n\t"
-			"in r25,__SP_H__ \n\t"
-			"sts _orig_sp_hi, r25\n\t"
-			"ldi r24, 0\n\t"
-			"ldi r25, 0\n\t"
-			"rjmp .dead_proc_entry\n\t");
+		"cli \n\t"
+		"in r24,__SP_L__ \n\t"
+		"sts _orig_sp_lo, r24\n\t"
+		"in r25,__SP_H__ \n\t"
+		"sts _orig_sp_hi, r25\n\t"
+		"ldi r24, 0\n\t"
+		"ldi r25, 0\n\t"
+		"rjmp .dead_proc_entry\n\t");
 }
 
 __attribute__((used)) void process_terminated()
 {
 	asm volatile(
-			"cli\n\t"
-			"lds r25, _orig_sp_hi\n\t"
-			"out __SP_H__, r25\n\t"
-			"lds r24, _orig_sp_lo\n\t"
-			"out __SP_L__, r24\n\t"
-			"ldi r24, lo8(0)\n\t"
-			"ldi r25, hi8(0)\n\t"
-			"rjmp .dead_proc_entry");
+		"cli\n\t"
+		"lds r25, _orig_sp_hi\n\t"
+		"out __SP_H__, r25\n\t"
+		"lds r24, _orig_sp_lo\n\t"
+		"out __SP_L__, r24\n\t"
+		"ldi r24, lo8(0)\n\t"
+		"ldi r25, hi8(0)\n\t"
+		"rjmp .dead_proc_entry");
 }
 
 void process_timer_interrupt();
@@ -53,91 +59,91 @@ __attribute__((used)) void yield()
 __attribute__((used)) void process_timer_interrupt()
 {
 	asm volatile(
-			"push r31\n\t"
-			"push r30\n\t"
-			"push r29\n\t"
-			"push r28\n\t"
-			"push r27\n\t"
-			"push r26\n\t"
-			"push r25\n\t"
-			"push r24\n\t"
-			"push r23\n\t"
-			"push r22\n\t"
-			"push r21\n\t"
-			"push r20\n\t"
-			"push r19\n\t"
-			"push r18\n\t"
-			"push r17\n\t"
-			"push r16\n\t"
-			"push r15\n\t"
-			"push r14\n\t"
-			"push r13\n\t"
-			"push r12\n\t"
-			"push r11\n\t"
-			"push r10\n\t"
-			"push r9\n\t"
-			"push r8\n\t"
-			"push r7\n\t"
-			"push r6\n\t"
-			"push r5\n\t"
-			"push r4\n\t"
-			"push r3\n\t"
-			"push r2\n\t"
-			"push r1\n\t"
-			"push r0\n\t"
-			"in r24, __SREG__\n\t"
-			"push r24\n\t"
-			"in r24, __SP_L__\n\t"
-			"in r25, __SP_H__\n\t"
-			".dead_proc_entry:\n\t"
-			"rcall process_select\n\t"
-			"eor r18,r18\n\t"
-			"or r18,r24\n\t"
-			"or r18,r25\n\t"
-			"brne .label_resume\n\t"
-			"lds r25, _orig_sp_hi\n\t"
-			"out __SP_H__, r25\n\t"
-			"lds r24, _orig_sp_lo\n\t"
-			"out __SP_L__, r24\n\t"
-			"ret\n\t"
-			".label_resume:\n\t"
-			"out __SP_L__, r24\n\t"
-			"out __SP_H__, r25\n\t"
-			"pop r0\n\t"
-			"out  __SREG__, r0\n\t"
-			"pop r0\n\t"
-			"pop r1\n\t"
-			"pop r2\n\t"
-			"pop r3\n\t"
-			"pop r4\n\t"
-			"pop r5\n\t"
-			"pop r6\n\t"
-			"pop r7\n\t"
-			"pop r8\n\t"
-			"pop r9\n\t"
-			"pop r10\n\t"
-			"pop r11\n\t"
-			"pop r12\n\t"
-			"pop r13\n\t"
-			"pop r14\n\t"
-			"pop r15\n\t"
-			"pop r16\n\t"
-			"pop r17\n\t"
-			"pop r18\n\t"
-			"pop r19\n\t"
-			"pop r20\n\t"
-			"pop r21\n\t"
-			"pop r22\n\t"
-			"pop r23\n\t"
-			"pop r24\n\t"
-			"pop r25\n\t"
-			"pop r26\n\t"
-			"pop r27\n\t"
-			"pop r28\n\t"
-			"pop r29\n\t"
-			"pop r30\n\t"
-			"pop r31\n\t"
-			"reti\n\t");
+		"push r31\n\t"
+		"push r30\n\t"
+		"push r29\n\t"
+		"push r28\n\t"
+		"push r27\n\t"
+		"push r26\n\t"
+		"push r25\n\t"
+		"push r24\n\t"
+		"push r23\n\t"
+		"push r22\n\t"
+		"push r21\n\t"
+		"push r20\n\t"
+		"push r19\n\t"
+		"push r18\n\t"
+		"push r17\n\t"
+		"push r16\n\t"
+		"push r15\n\t"
+		"push r14\n\t"
+		"push r13\n\t"
+		"push r12\n\t"
+		"push r11\n\t"
+		"push r10\n\t"
+		"push r9\n\t"
+		"push r8\n\t"
+		"push r7\n\t"
+		"push r6\n\t"
+		"push r5\n\t"
+		"push r4\n\t"
+		"push r3\n\t"
+		"push r2\n\t"
+		"push r1\n\t"
+		"push r0\n\t"
+		"in r24, __SREG__\n\t"
+		"push r24\n\t"
+		"in r24, __SP_L__\n\t"
+		"in r25, __SP_H__\n\t"
+		".dead_proc_entry:\n\t"
+		"rcall process_select\n\t"
+		"eor r18,r18\n\t"
+		"or r18,r24\n\t"
+		"or r18,r25\n\t"
+		"brne .label_resume\n\t"
+		"lds r25, _orig_sp_hi\n\t"
+		"out __SP_H__, r25\n\t"
+		"lds r24, _orig_sp_lo\n\t"
+		"out __SP_L__, r24\n\t"
+		"ret\n\t"
+		".label_resume:\n\t"
+		"out __SP_L__, r24\n\t"
+		"out __SP_H__, r25\n\t"
+		"pop r0\n\t"
+		"out  __SREG__, r0\n\t"
+		"pop r0\n\t"
+		"pop r1\n\t"
+		"pop r2\n\t"
+		"pop r3\n\t"
+		"pop r4\n\t"
+		"pop r5\n\t"
+		"pop r6\n\t"
+		"pop r7\n\t"
+		"pop r8\n\t"
+		"pop r9\n\t"
+		"pop r10\n\t"
+		"pop r11\n\t"
+		"pop r12\n\t"
+		"pop r13\n\t"
+		"pop r14\n\t"
+		"pop r15\n\t"
+		"pop r16\n\t"
+		"pop r17\n\t"
+		"pop r18\n\t"
+		"pop r19\n\t"
+		"pop r20\n\t"
+		"pop r21\n\t"
+		"pop r22\n\t"
+		"pop r23\n\t"
+		"pop r24\n\t"
+		"pop r25\n\t"
+		"pop r26\n\t"
+		"pop r27\n\t"
+		"pop r28\n\t"
+		"pop r29\n\t"
+		"pop r30\n\t"
+		"pop r31\n\t"
+		"reti\n\t");
 }
 
 /*
@@ -203,7 +209,7 @@ int process_create(void (*f)(void), int n)
 	new_process->sp = sp;
 	new_process->next = NULL;
 
-	// Check if queue is empty and adding first node
+	// Check if queue is empty, and initialize first node
 	if (queue_head == NULL)
 	{
 		queue_head = new_process;
@@ -238,11 +244,11 @@ __attribute__((used)) unsigned int process_select(unsigned int cursp)
 		// Some running process
 		else
 		{
+			// Continue running the same process with the current stack pointer. Technically we shouldn't need to have to update the process' sp since we're not appending it to anything right now, but we do it for consistency's sake.
 			current_process->sp = cursp;
 			return cursp;
 		}
-	}
-	// Else something in the queue
+	} // Else something in the queue
 
 	// Some running process, so append to queue
 	if (cursp != 0)

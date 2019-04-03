@@ -4,6 +4,14 @@
 #include <stdlib.h>
 #include "concurrency.h"
 
+/*
+We use a similar implementation of processes as in part 1, with some modification to process_select and process_create.  
+
+To implement wait-free locks, we store a waiting queue within a lock data structure. When a process acquires the lock, it marks the lock as acquired and continues to the critical section. If another process tries to acquire that lock, it will instead mark itself as waiting and then yield. In process_select, we check if the "current" process (the process that just yielded) is marked as waiting. If it is marked as waiting then we will append it to the waiting queue of the lock that the process was waiting for, instead of the ready queue. 
+
+When the process with the lock releases it, it will pop the first process in the waiting queue onto the ready queue, and then mark the lock as free. The released process will then eventually be able to acquire the lock. 
+*/
+
 struct process_state
 {
 	unsigned int sp;						/* stack pointer */
@@ -241,11 +249,11 @@ __attribute__((used)) unsigned int process_select(unsigned int cursp)
 		// Some running process
 		else
 		{
+			// Continue running the same process with the current stack pointer. Technically we shouldn't need to have to update the process' sp since we're not appending it to anything right now, but we do it for consistency's sake.
 			current_process->sp = cursp;
 			return cursp;
 		}
-	}
-	// Else something in the queue
+	} // Else something in the queue
 
 	// Some running process, so check which queue to append to based on if its waiting or not
 	if (cursp != 0)
@@ -297,14 +305,16 @@ void lock_init(lock_t *l)
 
 void lock_acquire(lock_t *l)
 {
+	// We need to mutex this section to ensure that we don't get two or more processes thinking they have acquired the lock. So we disable interrupts until we are about to yield, or after we have marked the lock as acquired.
 	cli();
-	while (l->acquired == 1)
+	while (l->acquired == 1) // We use while instead of if, in case this process p2 goes to wait and then tries again when the lock is released but some other process p3 has obtained it first (for example if p3 was initialized and added to the queue while p2 was waiting). If we want to ensure p2 goes next we could try to append to the head instead.
 	{
+		// Since we need to update the current stack pointer of this process before we add it to the waiting queue, we append it only in process_select, where we have access to cursp. But we need process_select to have access to this lock's waiting queue, so we save a reference to this lock in this process.
 		current_process->waiting = l;
 		sei();
 		yield();
 	}
-
+	// Mark the lock as acquired.
 	l->acquired = 1;
 	sei();
 	return;
@@ -312,33 +322,42 @@ void lock_acquire(lock_t *l)
 
 void lock_release(lock_t *l)
 {
-	// If there is anybody waiting, pop the head of this lock's waiting queue onto the ready queue.
+	// If there is anybody waiting, pop the head of this lock's waiting queue onto the ready queue
 	if (l->q_head != NULL)
 	{
+		// We mutually exclude this section since things may get messy if interrupted.
+		// For instance, if we append a waiting process onto the tail of the ready queue but haven't set the new tail reference, and this current process gets interrupted, it will make itself the new tail, thereby overwriting the pointer to the released process.
 		cli();
 		process_t *next = l->q_head->next;
 
+		// Mark the lock as free
 		l->acquired = 0;
+
+		// Mark the head as non-waiting
 		l->q_head->waiting = NULL;
 
 		// Empty queue
 		if (queue_tail == NULL)
 		{
+			// Add as head of ready queue
 			queue_head = l->q_head;
-			queue_tail = l->q_head;
 		}
 		else
 		{
+			// Append to tail of ready queue
 			queue_tail->next = l->q_head;
-			queue_tail = queue_tail->next;
 		}
+		// Set new tail of ready queue
+		queue_tail = l->q_head;
+		// Set new head of waiting queue
 		l->q_head = next;
 		sei();
 	}
 	else
 	{
+		// Mark the lock as free
 		l->acquired = 0;
 	}
-	// yield so the just queued process can try to acquire the lock to be fair
+	// Yield so that another process (for example the just-released process) could try to acquire the lock. This helps improve fairness, particularly in the case (as it is with our current test) when the current running process might immediately try to acquire the lock again, and thus starve other waiting processes.
 	yield();
 }
