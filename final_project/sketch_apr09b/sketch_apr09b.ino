@@ -27,7 +27,7 @@ void loop()
     if (millis() > time + 50 && pinState != state) {
       if (!pinState) {
           notePlaying = true;
-          MIDImessage(noteON, 60, 100);//turn note on
+          MIDImessage(noteON, 41, 100);//turn note on
       }
       state = pinState;
   
