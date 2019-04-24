@@ -3,19 +3,26 @@
 #include <stdlib.h>
 #include "concurrency.h"
 
-struct process_state {
-        unsigned int sp; /* stack pointer */
-        struct process_state *next; /* link to next process */
-   };
+/*
+We initialize the created processes in the ready queue and store references to them in the globals queue_head and queue_tail. When selecting a process, we first append the currently running process (if any) to the back of the queue with the current stack pointer (to save its progress), and pop the next process from the queue. 
+If there is nothing in the queue, and the currently running process is not done we simply continue running the current process by returning the new stack pointer. 
+If there is nothing in the queue, and the currently running process is done then we are done with all processes. 
+*/
+
+struct process_state
+{
+	unsigned int sp;			/* stack pointer */
+	struct process_state *next; /* link to next process */
+};
+
 process_t *queue_head = NULL;
 process_t *queue_tail = NULL;
 process_t *current_process = NULL;
-process_t *spare = NULL;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
-__attribute__((used)) void process_begin ()
+__attribute__((used)) void process_begin()
 {
-  asm volatile (
+	asm volatile(
 		"cli \n\t"
 		"in r24,__SP_L__ \n\t"
 		"sts _orig_sp_lo, r24\n\t"
@@ -23,13 +30,12 @@ __attribute__((used)) void process_begin ()
 		"sts _orig_sp_hi, r25\n\t"
 		"ldi r24, 0\n\t"
 		"ldi r25, 0\n\t"
-		"rjmp .dead_proc_entry\n\t"
-		);
+		"rjmp .dead_proc_entry\n\t");
 }
 
-__attribute__((used)) void process_terminated ()
+__attribute__((used)) void process_terminated()
 {
-  asm volatile (
+	asm volatile(
 		"cli\n\t"
 		"lds r25, _orig_sp_hi\n\t"
 		"out __SP_H__, r25\n\t"
@@ -37,22 +43,22 @@ __attribute__((used)) void process_terminated ()
 		"out __SP_L__, r24\n\t"
 		"ldi r24, lo8(0)\n\t"
 		"ldi r25, hi8(0)\n\t"
-		"rjmp .dead_proc_entry"
-		);
+		"rjmp .dead_proc_entry");
 }
 
-void process_timer_interrupt ();
+void process_timer_interrupt();
 
-__attribute__((used)) void yield ()
+__attribute__((used)) void yield()
 {
-  if (!current_process) return;
-  asm volatile ("cli\n\t");
-  asm volatile ("rjmp process_timer_interrupt\n\t");
+	if (!current_process)
+		return;
+	asm volatile("cli\n\t");
+	asm volatile("rjmp process_timer_interrupt\n\t");
 }
 
 __attribute__((used)) void process_timer_interrupt()
 {
-  asm volatile (
+	asm volatile(
 		"push r31\n\t"
 		"push r30\n\t"
 		"push r29\n\t"
@@ -140,71 +146,77 @@ __attribute__((used)) void process_timer_interrupt()
 		"reti\n\t");
 }
 
-
 /*
  * Stack: save 32 regs, +2 for entry point +2 for ret address
  */
 #define EXTRA_SPACE 37
 #define EXTRA_PAD 4
 
-unsigned int process_init (void (*f) (void), int n)
+unsigned int process_init(void (*f)(void), int n)
 {
-  unsigned long stk;
-  int i;
-  unsigned char *stkspace;
+	unsigned long stk;
+	int i;
+	unsigned char *stkspace;
 
-  /* Create a new process */
-  n += EXTRA_SPACE + EXTRA_PAD;
-  stkspace = (unsigned char *) malloc (n);
+	/* Create a new process */
+	n += EXTRA_SPACE + EXTRA_PAD;
+	stkspace = (unsigned char *)malloc(n);
 
-  if (stkspace == NULL) {
-    /* failed! */
-    return 0;
-  }
+	if (stkspace == NULL)
+	{
+		/* failed! */
+		return 0;
+	}
 
-  /* Create the "standard" stack, including entry point */
-  for (i=0; i < n; i++) {
-      stkspace[i] = 0;
-  }
+	/* Create the "standard" stack, including entry point */
+	for (i = 0; i < n; i++)
+	{
+		stkspace[i] = 0;
+	}
 
-  n -= EXTRA_PAD;
+	n -= EXTRA_PAD;
 
-  stkspace[n-1] = ( (unsigned int) process_terminated ) & 0xff;
-  stkspace[n-2] = ( (unsigned int) process_terminated ) >> 8;
-  stkspace[n-3] = ( (unsigned int) f ) & 0xff;
-  stkspace[n-4] = ( (unsigned int) f ) >> 8;
+	stkspace[n - 1] = ((unsigned int)process_terminated) & 0xff;
+	stkspace[n - 2] = ((unsigned int)process_terminated) >> 8;
+	stkspace[n - 3] = ((unsigned int)f) & 0xff;
+	stkspace[n - 4] = ((unsigned int)f) >> 8;
 
-  /* SREG */
-  stkspace[n-EXTRA_SPACE] = SREG;
+	/* SREG */
+	stkspace[n - EXTRA_SPACE] = SREG;
 
-  stk = (unsigned int)stkspace + n - EXTRA_SPACE - 1;
+	stk = (unsigned int)stkspace + n - EXTRA_SPACE - 1;
 
-  return stk;
+	return stk;
 }
 
-int process_create (void (*f)(void), int n) {
+int process_create(void (*f)(void), int n)
+{
 	// Allocate stack space for new process
 	int sp = process_init(f, n);
-	
+
 	// Return error if failed to allocate stack space for new process
-	if (sp == 0) {
+	if (sp == 0)
+	{
 		return -1;
 	}
 
 	// Create linked list node for new process
-	process_t *new_process = (process_t *) malloc(sizeof(process_t));
-	if (new_process == NULL) {
+	process_t *new_process = (process_t *)malloc(sizeof(process_t));
+	if (new_process == NULL)
+	{
 		return -1;
 	}
 	new_process->sp = sp;
 	new_process->next = NULL;
 
-	// Check if queue is empty and adding first node
-	if (queue_head == NULL) {
+	// Check if queue is empty, and initialize first node
+	if (queue_head == NULL)
+	{
 		queue_head = new_process;
-	} 
+	}
 	// Otherwise append to end of queue
-	else {
+	else
+	{
 		queue_tail->next = new_process;
 	}
 	// Set end of queue to the new node
@@ -213,54 +225,50 @@ int process_create (void (*f)(void), int n) {
 	return 0;
 }
 
-void process_start (void) {
-	// Set current_process to the head of the already built queue
-	current_process = queue_head;
-
-	spare = (process_t *) malloc(sizeof(process_t));
-	spare->sp = 0;
-	spare->next = NULL;
-	
-	// Clear reference to beginning of queue, since unused and will be freed
-	queue_head = NULL;
-	
+void process_start(void)
+{
 	// Indirectly call process select
 	process_begin();
 }
 
-// TODO
-__attribute__((used)) unsigned int process_select (unsigned int cursp) {
+__attribute__((used)) unsigned int process_select(unsigned int cursp)
+{
 	// Nothing in the queue
-	if (current_process == NULL) {
+	if (queue_head == NULL)
+	{
 		// No running process
-		if (cursp == 0) {
+		if (cursp == 0)
+		{
 			return 0;
 		}
 		// Some running process
-		else {
+		else
+		{
+			// Continue running the same process with the current stack pointer. Technically we shouldn't need to have to update the process' sp since we're not appending it to anything right now, but we do it for consistency's sake.
+			current_process->sp = cursp;
 			return cursp;
 		}
+	} // Else something in the queue
+
+	// Some running process, so append to queue
+	if (cursp != 0)
+	{
+		// Save current stack pointer as starting point when next run
+		current_process->sp = cursp;
+		queue_tail->next = current_process;
+		queue_tail = current_process;
 	}
 
-	// Something in the queue
-	// Some running process, so append interrupted process to queue
-	if (cursp != 0) {
-		process_t *new_tail = spare;
-		new_tail->sp = cursp;
-		new_tail->next = NULL;
-		queue_tail->next = new_tail;
-		queue_tail = new_tail;
-	} // Else no running process, so nothing to append
-
 	// Pop next process to run
-	int next_sp = current_process->sp;
-	spare = current_process;
-	current_process = current_process->next;
+	current_process = queue_head;
+	queue_head = queue_head->next;
+	current_process->next = NULL;
 
-	// check if we emptied the queue
-	if (current_process == NULL) {
+	// Check if we emptied the queue, update tail as necessary.
+	if (queue_head == NULL)
+	{
 		queue_tail = NULL;
 	}
 
-	return next_sp;
+	return current_process->sp;
 }
