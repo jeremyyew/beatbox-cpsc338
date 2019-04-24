@@ -59,7 +59,12 @@ void setup() {
 
 void loop() {
   trellis.read();  // interrupt management does all the work! :)
-  
+
+  if (Serial.available() > 0) {
+    int readIn = Serial.read() - '0';
+    trellis.pixels.setPixelColor(readIn, trellis.pixels.Color(100,0, 0));
+  }
+
   delay(20); //the trellis has a resolution of around 60hz
 }
 

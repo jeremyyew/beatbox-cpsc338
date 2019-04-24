@@ -9,6 +9,9 @@ def button_pressed(button_num):
 def button_released(button_num):
    print("released:", button_num)
 
+def light_up_button(button_num):
+   ser.write(bytes(chr(button_num + 48), 'utf-8'))
+
 received = False
 while not received:
    if ser.inWaiting() > 0: 
@@ -19,3 +22,4 @@ while not received:
       else:
          button_released(action_num - 16)
 
+   
