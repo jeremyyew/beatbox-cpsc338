@@ -49,7 +49,7 @@ class Game:
         self.duration_beats = duration_beats
 
     def start(self):
-        # music.play()
+        music.play()
         self.start_time = time.time()
         current_beat = 0
         print("Song start time:", self.start_time)
@@ -60,21 +60,17 @@ class Game:
             # Processing next beat
             if current_beat > self.last_updated:
                 print("BEAT", current_beat)
-                # if self.last_updated in self.prompts:
                 for button_num in buttons:
                     if current_beat not in self.prompts or button_states[button_num] not in self.prompts[current_beat]:
                         turn_off(button_num)
 
                 self.last_updated = current_beat                
-                # Check if there were any prompts that were not triggered. 
-                # old_prompt = self.active_prompts
-                # self.missed += len(old_prompt)
-                # self.active_prompts = set()
+                
+                # TODO: Check if there were any prompts that were not triggered. 
 
                 if current_beat in self.prompts:
                     # Update. 
                     self.active_prompts = set(self.prompts[current_beat])
-                    # print("updating active prompts:", self.active_prompts)
                     for button_num in self.prompts[current_beat]:
                         set_color(button_num, Color.C)
 
@@ -86,7 +82,6 @@ class Game:
                 else:
                     self.button_released(action_num - 16)
 
-        print(performance)
         print("CORRECT:", self.correct)
         print("MISSED:", self.missed)
         print("FINAL SCORE:",self.correct - self.missed)
@@ -117,16 +112,8 @@ buttons = range(0, 16)
 button_states = {key: Color.OFF for key in buttons}
 time.sleep(3) # allow time to initalize serial (restarts sketch)
 
-performance = {beat: [] for beat in firefly_prompts.keys()}
+# performance = {beat: [] for beat in firefly_prompts.keys()}
 
-game = Game(title='sounds/fireflies.mp3',tempo=90,prompts={beat: set(firefly_prompts[beat]) for beat in firefly_prompts},duration_beats = 15)
+game = Game(title='sounds/fireflies.mp3',tempo=90,prompts=firefly_prompts,duration_beats = 15)
 print(firefly_prompts)
 game.start()
-
-# pygame.mixer.init(frequency=22050,size=-16,channels=4)
-# sound1 = pygame.mixer.Sound('sounds/firefly-midi-2.ogg')
-# chan1 = pygame.mixer.Channel(0)
-# chan2 = pygame.mixer.Channel(1)
-# pygame.init()
-#chan1.queue(sound1)
-#chan2.queue(sound2)
