@@ -12,12 +12,12 @@ firefly_prompts = {
     # 3: [3, 4, 8, 9],
     # 4: [4],
     # 8: [1]
-    1: [1],
-    2: [2],
-    3: [1],
+    2: [1],
     4: [2],
-    5: [1],
-    6: [2]
+    6: [1],
+    8: [2],
+    10: [1],
+    12: [2]
 
 }
 
@@ -34,6 +34,7 @@ def set_color(button_num, color):
     ser.write(bytes(chr(button_num + 48 + 16 * color.value), 'utf-8'))
 
 def turn_off(button_num):
+    print("turning off:", button_num)
     ser.write(bytes(chr(button_num + 48 + 16 * Color.OFF.value), 'utf-8'))
 
 class Game:
@@ -61,7 +62,7 @@ class Game:
             if current_beat > self.last_updated:
                 print("BEAT", current_beat)
                 for button_num in buttons:
-                    if current_beat not in self.prompts or button_states[button_num] not in self.prompts[current_beat]:
+                    if current_beat not in self.prompts or button_num not in self.prompts[current_beat]:
                         turn_off(button_num)
 
                 self.last_updated = current_beat                
@@ -73,6 +74,11 @@ class Game:
                     self.active_prompts = set(self.prompts[current_beat])
                     for button_num in self.prompts[current_beat]:
                         set_color(button_num, Color.C)
+
+                next_beat = current_beat + 1
+                if next_beat in self.prompts:
+                    for button_num in self.prompts[next_beat]:
+                        set_color(button_num, Color.A)
 
             if ser.inWaiting() > 0: 
                 incoming = ser.read()
