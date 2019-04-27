@@ -16,7 +16,6 @@ button_states = {key: Color.OFF for key in buttons}
 def button_pressed(button_num):
    print("pressed:", button_num)
    curr_state = button_states[button_num]
-   print("current state:", curr_state)
    next_state = Color((curr_state.value + 1) % len(Color))
 
    toggle_button(button_num, next_state)
@@ -27,7 +26,7 @@ def button_released(button_num):
    print("released:", button_num)
 
 def toggle_button(button_num, color):
-   print("lighting up:", button_num, button_num + 48 + 16 * color.value)
+   print("lighting up:", button_num, color, button_num + 48 + 16 * color.value)
    ser.write(bytes(chr(button_num + 48 + 16 * color.value), 'utf-8'))
 
 def main():
