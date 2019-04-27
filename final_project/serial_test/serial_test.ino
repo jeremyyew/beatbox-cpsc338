@@ -7,17 +7,21 @@
 
 byte noteON = 144; //note on command
 Adafruit_NeoTrellis trellis;
+uint32_t off = trellis.pixels.Color(0, 0, 0);
+uint32_t A = trellis.pixels.Color(100, 0, 0);  // red
+uint32_t B = trellis.pixels.Color(0, 100, 0);  // green
+uint32_t C = trellis.pixels.Color(0, 0, 100);  // blue
 
 //define a callback for key presses
 TrellisCallback blink(keyEvent evt){
   // Check is the pad pressed?
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
-    trellis.pixels.setPixelColor(evt.bit.NUM, Wheel(map(evt.bit.NUM, 0, trellis.pixels.numPixels(), 0, 255))); //on rising
-    Serial.write(evt.bit.NUM + 48);
+//    trellis.pixels.setPixelColor(evt.bit.NUM, Wheel(map(evt.bit.NUM, 0, trellis.pixels.numPixels(), 0, 255))); //on rising
+    Serial.write(evt.bit.NUM + 16 + 48);
   } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
   // or is the pad released?
-    trellis.pixels.setPixelColor(evt.bit.NUM, 0); //off falling
-    Serial.write(evt.bit.NUM + 16 + 48);
+//    trellis.pixels.setPixelColor(evt.bit.NUM, 0); //off falling
+    Serial.write(evt.bit.NUM + 48);
   }
 
   // Turn on/off the neopixels!
@@ -58,12 +62,23 @@ void setup() {
 }
 
 void loop() {
-  trellis.read();  // interrupt management does all the work! :)
+//  Serial.println("looping");
 
   if (Serial.available() > 0) {
     int readIn = Serial.read() - '0';
-    trellis.pixels.setPixelColor(readIn, trellis.pixels.Color(100,0, 0));
+    if (readIn < 16) {
+      trellis.pixels.setPixelColor(readIn, off);
+    } else if (readIn < 32) {
+      trellis.pixels.setPixelColor(readIn - 16, A);
+    } else if (readIn < 48) {
+      trellis.pixels.setPixelColor(readIn - 32, B);
+    } else if (readIn < 64) {
+      trellis.pixels.setPixelColor(readIn - 48, C);
+    }
+    trellis.pixels.show();
   }
+
+  trellis.read();  // interrupt management does all the work! :)
 
   delay(20); //the trellis has a resolution of around 60hz
 }
