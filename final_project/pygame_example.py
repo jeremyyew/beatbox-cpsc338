@@ -19,6 +19,12 @@ class Color(Enum):
    B = 2
    C = 3
 
+
+def toggle_button(button_num, color):
+    button_states[button_num] = color
+    print("lighting up:", button_num, color, button_num + 48 + 16 * color.value)
+    ser.write(bytes(chr(button_num + 48 + 16 * color.value), 'utf-8'))
+
 class Song:
     def __init__(self, title, tempo, prompts, duration_beats):
         pygame.init()
@@ -49,12 +55,22 @@ class Song:
             return True
         # If we haven't updated for this beat, and there are prompts for the current beat. 
         if current_beat > self.last_updated and current_beat in self.prompts:
+            # Turn off all lights of old active prompt
+            old_prompt = self.active_prompts
+            self.active_prompts = self.prompts[current_beat]
+            for button_num in old_prompt:
+                if button_num not in self.active_prompts and button_states[button_num] != Color.OFF:
+                    toggle_button(button_num, Color.OFF)
+
             # Check if there were any prompts that were not triggered. 
             # self.score -= 10
             # Update. 
             self.active_prompts = self.prompts[current_beat]
             self.last_updated = current_beat
             print("updating active prompts:", self.active_prompts)
+            for button_num in self.active_prompts:
+                if button_states[button_num] == Color.OFF:
+                    toggle_button(button_num, Color.C)
         return False
 
     def get_duration_beats(self):
@@ -116,27 +132,23 @@ class Game:
     def button_pressed(self,button_num):
         self.active_prompts = self.song.get_active_prompts()
         print(f'pressed {button_num}')
+        new_color = Color.A             # Red if you press and you weren't supposed to
         if button_num in self.active_prompts:
             print(f'prompt {button_num} triggered')
             # Remove prompt so we can't trigger it again. 
             self.active_prompts.remove(button_num)
             # Record score.
             self.score += 10
+            new_color = Color.B          # Green when pressed after prompt
 
-        curr_state = button_states[button_num]
-        next_state = Color((curr_state.value + 1) % len(Color))
-        self.toggle_button(button_num, next_state)
+        toggle_button(button_num, new_color)
+        print(f'handled {button_num} pressed')
 
     def button_released(self, button_num):
         print("released:", button_num)
-        curr_state = button_states[button_num]
-        next_state = Color((curr_state.value + 1) % len(Color))
-        self.toggle_button(button_num, next_state)
+        toggle_button(button_num, Color.OFF)
+        print(f'handled {button_num} released')
 
-    def toggle_button(self, button_num, color):
-        button_states[button_num] = color
-        print("lighting up:", button_num, color, button_num + 48 + 16 * color.value)
-        ser.write(bytes(chr(button_num + 48 + 16 * color.value), 'utf-8'))
 
 ser = serial.Serial('/dev/cu.usbmodem1411', 115200, timeout=0)
 print('Initializing...')
