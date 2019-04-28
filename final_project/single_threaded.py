@@ -19,7 +19,9 @@ from prompts import get_prompts
 PORT = '/dev/cu.usbmodem141301'
 music = pygame.mixer.music
 
-firefly_prompts = get_prompts()
+fireflies = get_prompts()
+fireflies_prompts = fireflies['prompts']
+fireflies_duration = fireflies['duration']
 
 
 class Color(Enum):
@@ -32,8 +34,7 @@ class Color(Enum):
 
 def set_color(button_num, color):
     # button_states[button_num] = color
-    print("lighting up:", button_num, color,
-          button_num + 48 + 16 * color.value)
+    # print("lighting up:", button_num, color, button_num + 48 + 16 * color.value)
     ser.write(bytes(chr(button_num + 48 + 16 * color.value), 'utf-8'))
 
 
@@ -57,7 +58,7 @@ class Game:
         music.play()
         self.start_time = time.time()
         current_beat = 0
-        print("Song start time:", self.start_time)
+        # print("Song start time:", self.start_time)
         while current_beat <= self.duration_beats:
             now_ms = (time.time() - self.start_time) * 1000
             current_beat = now_ms // self.BEAT_TIME_MS
@@ -89,8 +90,8 @@ class Game:
                 action_num = ord(incoming) - 48
                 if (action_num < 16):
                     self.button_pressed(action_num, current_beat)
-                else:
-                    self.button_released(action_num - 16)
+                # else:
+                #     self.button_released(action_num - 16)
 
         print("CORRECT:", self.correct)
         print("MISSED:", self.missed)
@@ -109,9 +110,9 @@ class Game:
 
         set_color(button_num, new_color)
 
-    def button_released(self, button_num):
-        # print("released:", button_num)
-        pass
+    # def button_released(self, button_num):
+    #     # print("released:", button_num)
+    #     pass
 
 
 ser = serial.Serial(PORT, 115200, timeout=0)
@@ -122,6 +123,5 @@ time.sleep(3)  # allow time to initalize serial (restarts sketch)
 
 
 game = Game(title='sounds/fireflies.mp3', tempo=90,
-            prompts=firefly_prompts, duration_beats=45)
-print(firefly_prompts)
+            prompts=fireflies_prompts, duration_beats=fireflies_duration)
 game.start()
