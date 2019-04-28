@@ -29,3 +29,4 @@ def get_prompts():
         24: [5, 6],
         25: [4, 7]
     }
+    return firefly_prompts

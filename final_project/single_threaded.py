@@ -16,7 +16,7 @@ from prompts import get_prompts
 # - second song/game state?
 # - enclosure
 # - print poster
-PORT = '/dev/cu.usbmodem1411'
+PORT = '/dev/cu.usbmodem141301'
 music = pygame.mixer.music
 
 firefly_prompts = get_prompts()
