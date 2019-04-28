@@ -8,24 +8,22 @@
 byte noteON = 144; //note on command
 Adafruit_NeoTrellis trellis;
 uint32_t off = trellis.pixels.Color(0, 0, 0);
-uint32_t A = trellis.pixels.Color(100, 0, 0);  // red
-uint32_t B = trellis.pixels.Color(0, 100, 0);  // green
-uint32_t C = trellis.pixels.Color(0, 0, 100);  // blue
+uint32_t A = trellis.pixels.Color(100, 0, 0);       // wrong (red)
+uint32_t B = trellis.pixels.Color(0, 100, 100);     // active (bright blue)
+uint32_t C = trellis.pixels.Color(0, 0, 50);        // hint (dark blue)
+uint32_t D = trellis.pixels.Color(50, 0, 100);      // correct (purple)
 
 //define a callback for key presses
 TrellisCallback blink(keyEvent evt){
-  // Check is the pad pressed?
+
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
-//    trellis.pixels.setPixelColor(evt.bit.NUM, Wheel(map(evt.bit.NUM, 0, trellis.pixels.numPixels(), 0, 255))); //on rising
-    Serial.write(evt.bit.NUM + 16 + 48);
-  } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
-  // or is the pad released?
-//    trellis.pixels.setPixelColor(evt.bit.NUM, 0); //off falling
     Serial.write(evt.bit.NUM + 48);
+  } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
+    Serial.write(evt.bit.NUM + 16 + 48);
   }
 
   // Turn on/off the neopixels!
-  trellis.pixels.show();
+//  trellis.pixels.show();
 
   return 0;
 }
@@ -74,6 +72,8 @@ void loop() {
       trellis.pixels.setPixelColor(readIn - 32, B);
     } else if (readIn < 64) {
       trellis.pixels.setPixelColor(readIn - 48, C);
+    } else if (readIn < 80) {
+      trellis.pixels.setPixelColor(readIn - 64, D);
     }
     trellis.pixels.show();
   }
