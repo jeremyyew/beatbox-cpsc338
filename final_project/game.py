@@ -19,6 +19,7 @@ import sys
 PORT = '/dev/cu.usbmodem141301'
 music = pygame.mixer.music
 
+
 class Color(Enum):
     OFF = 0
     WRONG = 1
@@ -45,7 +46,6 @@ class Game:
         self.correct = 0
         self.wrong = 0
         self.duration_beats = duration_beats
-
 
     def start(self):
         music.play()
@@ -77,13 +77,7 @@ class Game:
                             turn_off(button_num)
 
                 self.last_updated = current_beat
-<<<<<<< HEAD:final_project/single_threaded.py
 
-                # TODO: Check if there were any prompts that were not triggered.
-
-=======
-                
->>>>>>> 389f38d707386dbb599752f1a99c5cf7d62427a9:final_project/game.py
             if ser.inWaiting() > 0:
                 incoming = ser.read()
                 action_num = ord(incoming) - 48
@@ -93,7 +87,6 @@ class Game:
         print("CORRECT:", self.correct)
         print("WRONG:", self.wrong)
         print("FINAL SCORE:", self.correct - self.wrong)
-
 
     def button_pressed(self, button_num, current_beat):
         print(
