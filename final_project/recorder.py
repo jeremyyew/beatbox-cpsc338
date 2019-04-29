@@ -57,6 +57,9 @@ class Game:
         music.play()
         self.start_time = time.time()
         current_beat = 0
+
+        toggle = 0
+
         # print("Song start time:", self.start_time)
         while current_beat <= self.duration_beats:
             now_ms = (time.time() - self.start_time) * 1000
@@ -64,27 +67,19 @@ class Game:
 
             # Processing next beat
             if current_beat > self.last_updated:
-                curr_prompts = self.prompts.get(current_beat)
-                next_beat = current_beat + 1
-                print("BEAT", current_beat, curr_prompts)
-
-                if current_beat in self.prompts:
-                    # Update.
-                    for button_num in self.prompts[current_beat]:
-                        set_color(button_num, Color.ACTIVE)
-
-                if next_beat in self.prompts:
-                    for button_num in self.prompts[next_beat]:
-                        set_color(button_num, Color.HINT)
-
-                for button_num in buttons:
-                    if current_beat not in self.prompts or button_num not in self.prompts[current_beat]:
-                        if next_beat not in self.prompts or button_num not in self.prompts[next_beat]:
-                            turn_off(button_num)
-
+                print("BEAT", current_beat)
                 self.last_updated = current_beat
 
+                if toggle % 2 == 0:
+                    set_color(1, Color.HINT)
+                else:
+                    set_color(1, Color.WRONG)
+                toggle += 1
+
                 # TODO: Check if there were any prompts that were not triggered.
+
+                for button_num in buttons:
+                    turn_off(button_num)
 
                 
             if ser.inWaiting() > 0:
@@ -92,29 +87,19 @@ class Game:
                 action_num = ord(incoming) - 48
                 if (action_num < 16):
                     self.button_pressed(action_num, current_beat)
-                # else:
-                #     self.button_released(action_num - 16)
 
-        print("CORRECT:", self.correct)
-        print("WRONG:", self.wrong)
-        print("FINAL SCORE:",self.correct - self.wrong)
+        print(recording)
 
     def button_pressed(self, button_num, current_beat):
-        print(f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
-        if current_beat in self.prompts and button_num in self.prompts[current_beat]:
-            # Record score.
-            self.correct += 1
-            new_color = Color.CORRECT          # Correct when pressed after prompt
+        print(f'BEAT {current_beat} pressed {button_num}')
+        set_color(button_num, Color.ACTIVE)
+        beat_buttons = recording.get(current_beat)
+        if beat_buttons is not None:
+            beat_buttons.append(button_num)
         else:
-            self.wrong += 1
-            new_color = Color.WRONG             # Wrong if you press and you weren't supposed to
-            
-        set_color(button_num, new_color)
+            beat_buttons = [button_num]
 
-    # def button_released(self, button_num):
-    #     # print("released:", button_num)
-    #     pass
-
+        recording[current_beat] = beat_buttons
 
 ser = serial.Serial(PORT, 115200, timeout=0)
 print('Initializing...')
@@ -122,7 +107,8 @@ buttons = range(0, 16)
 
 time.sleep(3)  # allow time to initalize serial (restarts sketch)
 
+recording = {}
 
 game = Game(title='sounds/fireflies.mp3', tempo=90,
-            prompts=fireflies_prompts, duration_beats=fireflies_duration)
+            prompts=fireflies_prompts, duration_beats=30)
 game.start()
