@@ -60,7 +60,7 @@ class Game:
             if current_beat > self.last_updated:
                 curr_prompts = self.prompts.get(current_beat)
                 next_beat = current_beat + 1
-                # print("BEAT", current_beat, curr_prompts)
+                print("BEAT", current_beat, curr_prompts)
 
                 if current_beat in self.prompts:
                     # Update.

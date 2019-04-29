@@ -50,12 +50,6 @@ class Game:
                 print("BEAT", current_beat)
                 self.last_updated = current_beat
 
-                if toggle % 2 == 0:
-                    set_color(1, Color.HINT)
-                else:
-                    set_color(1, Color.WRONG)
-                toggle += 1
-                
                 for button_num in buttons:
                     turn_off(button_num)
 
@@ -87,6 +81,6 @@ time.sleep(3)  # allow time to initalize serial (restarts sketch)
 
 recording = {}
 
-game = Game(title='sounds/sucker.mp3', tempo=70,
-            prompts=None, duration_beats=75)
+game = Game(title='sounds/nobody.mp3', tempo=98,
+            prompts=None, duration_beats=83)
 game.start()
