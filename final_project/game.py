@@ -6,7 +6,7 @@ from enum import Enum
 from prompts import get_prompts
 import sys
 
-PORT = '/dev/cu.usbmodem1421'
+PORT = '/dev/cu.usbmodem141301'
 music = pygame.mixer.music
 
 

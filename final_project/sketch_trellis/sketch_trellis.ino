@@ -18,7 +18,7 @@ unsigned long buttonLastHit[4] = {0, 0, 0, 0};
 TrellisCallback blink(keyEvent evt){
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
     int column = evt.bit.NUM % 4;
-    if (millis() - buttonLastHit[column] < 1000) {
+    if (millis() - buttonLastHit[column] < 400) {
       return 0;
     }
     buttonLastHit[column] = millis();
