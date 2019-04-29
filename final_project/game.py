@@ -84,13 +84,15 @@ class Game:
                 if (action_num < 16):
                     self.button_pressed(action_num, current_beat)
 
-        print("CORRECT:", self.correct)
+        possible = sum([len(beat_prompt) for beat_prompt in self.prompts.values()])
+        print("CORRECT:", self.correct, "/", possible)
         print("WRONG:", self.wrong)
-        print("FINAL SCORE:",self.correct - self.wrong)
+
+        print("FINAL SCORE:", round(((self.correct - self.wrong) / possible) * 100))
 
 
     def button_pressed(self, button_num, current_beat):
-        print(f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
+        # print(f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
         if current_beat in self.prompts and button_num in self.prompts[current_beat]:
             # Record score.
             self.correct += 1
