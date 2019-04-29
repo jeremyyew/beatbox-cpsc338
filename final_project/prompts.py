@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 def get_prompts():
     # Layout:
     # 15,14,13,12
@@ -49,12 +50,16 @@ def get_prompts():
         'prompts': process_prompts(firefly_prompts),
         'duration': 194}
 
+=======
+import sucker_prompts
+import firefly_prompts
+>>>>>>> 389f38d707386dbb599752f1a99c5cf7d62427a9
 
-def process_prompts(prompts):
+def process_prompts(unprocessed_prompts):
     # {2: [[0, 1], [2, 3], [4, 5]]} ->
     # {2: [0, 1], 4: [2, 3], 6: [4, 5]}
     processed_prompts = {}
-    for beat, sequences in prompts.items():
+    for beat, sequences in unprocessed_prompts['prompts'].items():
         current = None
         for seq in sequences:
             if current is None:
@@ -64,5 +69,14 @@ def process_prompts(prompts):
                 continue
             processed_prompts[current] = seq
             current += 1
-    print(processed_prompts)
-    return processed_prompts
+    unprocessed_prompts['prompts'] = processed_prompts
+    return unprocessed_prompts
+    
+def get_prompts():
+    return {
+        'firefly': process_prompts(firefly_prompts.get_unprocessed_prompts()),
+        'sucker': sucker_prompts.get_song_prompts(),
+    }
+
+
+
