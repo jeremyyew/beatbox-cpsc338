@@ -11,7 +11,7 @@ class Color(Enum):
     CORRECT = 4
 
 
-ser = serial.Serial('/dev/cu.usbmodem1421', 115200, timeout=0)
+ser = serial.Serial('/dev/cu.usbmodem141301', 115200, timeout=0)
 
 buttons = range(0, 16)
 button_states = {key: Color.OFF for key in buttons}

@@ -53,7 +53,6 @@ class Game:
                 for button_num in buttons:
                     turn_off(button_num)
 
-                
             if ser.inWaiting() > 0:
                 incoming = ser.read()
                 action_num = ord(incoming) - 48
@@ -73,6 +72,7 @@ class Game:
 
         recording[current_beat] = beat_buttons
 
+
 ser = serial.Serial(PORT, 115200, timeout=0)
 print('Initializing...')
 buttons = range(0, 16)
@@ -81,6 +81,16 @@ time.sleep(3)  # allow time to initalize serial (restarts sketch)
 
 recording = {}
 
+<<<<<<< HEAD
 game = Game(title='sounds/nobody.mp3', tempo=98,
             prompts=None, duration_beats=83)
+=======
+<<<<<<< HEAD
+game = Game(title='sounds/fireflies.mp3', tempo=90,
+            prompts=fireflies_prompts, duration_beats=32)
+=======
+game = Game(title='sounds/sucker.mp3', tempo=70,
+            prompts=None, duration_beats=75)
+>>>>>>> 389f38d707386dbb599752f1a99c5cf7d62427a9
+>>>>>>> c8980a77f74cd148e1d2856832b9cd8d141bce44
 game.start()

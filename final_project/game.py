@@ -16,8 +16,9 @@ import sys
 # - second song/game state?
 # - enclosure
 # - print poster
-PORT = '/dev/cu.usbmodem1421'
+PORT = '/dev/cu.usbmodem141301'
 music = pygame.mixer.music
+
 
 class Color(Enum):
     OFF = 0
@@ -45,7 +46,6 @@ class Game:
         self.correct = 0
         self.wrong = 0
         self.duration_beats = duration_beats
-
 
     def start(self):
         music.play()
@@ -77,7 +77,7 @@ class Game:
                             turn_off(button_num)
 
                 self.last_updated = current_beat
-                
+
             if ser.inWaiting() > 0:
                 incoming = ser.read()
                 action_num = ord(incoming) - 48
@@ -100,7 +100,7 @@ class Game:
         else:
             self.wrong += 1
             new_color = Color.WRONG             # Wrong if you press and you weren't supposed to
-            
+
         set_color(button_num, new_color)
 
 
