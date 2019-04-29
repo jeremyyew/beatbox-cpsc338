@@ -15,7 +15,6 @@ def process_prompts(unprocessed_prompts):
                 continue
             processed_prompts[current] = seq
             current += 1
-    # print(processed_prompts)
     unprocessed_prompts['prompts'] = processed_prompts
     return unprocessed_prompts
     
