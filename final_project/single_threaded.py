@@ -15,7 +15,7 @@ from prompts import get_prompts
 # - second song/game state?
 # - enclosure
 # - print poster
-PORT = '/dev/cu.usbmodem1421'
+PORT = '/dev/cu.usbmodem141301'
 music = pygame.mixer.music
 
 fireflies = get_prompts()
@@ -86,7 +86,6 @@ class Game:
 
                 # TODO: Check if there were any prompts that were not triggered.
 
-                
             if ser.inWaiting() > 0:
                 incoming = ser.read()
                 action_num = ord(incoming) - 48
@@ -97,10 +96,11 @@ class Game:
 
         print("CORRECT:", self.correct)
         print("WRONG:", self.wrong)
-        print("FINAL SCORE:",self.correct - self.wrong)
+        print("FINAL SCORE:", self.correct - self.wrong)
 
     def button_pressed(self, button_num, current_beat):
-        print(f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
+        print(
+            f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
         if current_beat in self.prompts and button_num in self.prompts[current_beat]:
             # Record score.
             self.correct += 1
@@ -108,7 +108,7 @@ class Game:
         else:
             self.wrong += 1
             new_color = Color.WRONG             # Wrong if you press and you weren't supposed to
-            
+
         set_color(button_num, new_color)
 
     # def button_released(self, button_num):

@@ -15,7 +15,7 @@ from prompts import get_prompts
 # - second song/game state?
 # - enclosure
 # - print poster
-PORT = '/dev/cu.usbmodem1421'
+PORT = '/dev/cu.usbmodem141301'
 music = pygame.mixer.music
 
 fireflies = get_prompts()
@@ -81,7 +81,6 @@ class Game:
                 for button_num in buttons:
                     turn_off(button_num)
 
-                
             if ser.inWaiting() > 0:
                 incoming = ser.read()
                 action_num = ord(incoming) - 48
@@ -101,6 +100,7 @@ class Game:
 
         recording[current_beat] = beat_buttons
 
+
 ser = serial.Serial(PORT, 115200, timeout=0)
 print('Initializing...')
 buttons = range(0, 16)
@@ -110,5 +110,5 @@ time.sleep(3)  # allow time to initalize serial (restarts sketch)
 recording = {}
 
 game = Game(title='sounds/fireflies.mp3', tempo=90,
-            prompts=fireflies_prompts, duration_beats=30)
+            prompts=fireflies_prompts, duration_beats=32)
 game.start()
