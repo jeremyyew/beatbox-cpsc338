@@ -1,4 +1,4 @@
-/* This example shows basic usage of the NeoTrellis.
+/* This code is based on an example that shows basic usage of the NeoTrellis.
   The buttons will light up various colors when pressed.
   The interrupt pin is not used in this example.
 */
@@ -12,31 +12,30 @@ uint32_t A = trellis.pixels.Color(100, 0, 0);       // wrong (red)
 uint32_t B = trellis.pixels.Color(0, 100, 100);     // active (bright blue)
 uint32_t C = trellis.pixels.Color(0, 0, 50);        // hint (dark blue)
 uint32_t D = trellis.pixels.Color(50, 0, 100);      // correct (purple)
+unsigned long buttonLastHit[4] = {0, 0, 0, 0};
 
 //define a callback for key presses
 TrellisCallback blink(keyEvent evt){
-
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
+    int column = evt.bit.NUM % 4;
+    if (millis() - buttonLastHit[column] < 200) {
+      return 0;
+    }
+    buttonLastHit[column] = millis();
     Serial.write(evt.bit.NUM + 48);
   } else if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING) {
     Serial.write(evt.bit.NUM + 16 + 48);
   }
-
-  // Turn on/off the neopixels!
-//  trellis.pixels.show();
 
   return 0;
 }
 
 void setup() {
   Serial.begin(115200);
-  //while(!Serial);
   
   if (!trellis.begin()) {
-//    Serial.println("Could not start trellis, check wiring?");
+    // Error
     while(1);
-  } else {
-//    Serial.println("NeoPixel Trellis started");
   }
 
   //activate all keys and set callbacks
@@ -52,6 +51,7 @@ void setup() {
     trellis.pixels.show();
     delay(50);
   }
+  
   for (uint16_t i=0; i<trellis.pixels.numPixels(); i++) {
     trellis.pixels.setPixelColor(i, 0x000000);
     trellis.pixels.show();
@@ -60,8 +60,6 @@ void setup() {
 }
 
 void loop() {
-//  Serial.println("looping");
-
   if (Serial.available() > 0) {
     int readIn = Serial.read() - '0';
     if (readIn < 16) {
@@ -78,7 +76,7 @@ void loop() {
     trellis.pixels.show();
   }
 
-  trellis.read();  // interrupt management does all the work! :)
+  trellis.read();
 
   delay(20); //the trellis has a resolution of around 60hz
 }
