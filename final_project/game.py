@@ -6,17 +6,7 @@ from enum import Enum
 from prompts import get_prompts
 import sys
 
-# TODO:
-# Sat Night:
-# -x circuit diagram
-# - poster
-
-# Sun:
-# - transcribe a song
-# - second song/game state?
-# - enclosure
-# - print poster
-PORT = '/dev/cu.usbmodem141301'
+PORT = '/dev/cu.usbmodem1421'
 music = pygame.mixer.music
 
 
