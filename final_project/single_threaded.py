@@ -3,7 +3,6 @@ import time
 import threading
 import serial
 from enum import Enum
-from collections import OrderedDict
 from prompts import get_prompts
 
 # TODO:
@@ -16,7 +15,7 @@ from prompts import get_prompts
 # - second song/game state?
 # - enclosure
 # - print poster
-PORT = '/dev/cu.usbmodem141301'
+PORT = '/dev/cu.usbmodem1421'
 music = pygame.mixer.music
 
 fireflies = get_prompts()
@@ -66,25 +65,28 @@ class Game:
             # Processing next beat
             if current_beat > self.last_updated:
                 curr_prompts = self.prompts.get(current_beat)
+                next_beat = current_beat + 1
                 print("BEAT", current_beat, curr_prompts)
-                for button_num in buttons:
-                    if current_beat not in self.prompts or button_num not in self.prompts[current_beat]:
-                        turn_off(button_num)
-
-                self.last_updated = current_beat
-
-                # TODO: Check if there were any prompts that were not triggered.
 
                 if current_beat in self.prompts:
                     # Update.
                     for button_num in self.prompts[current_beat]:
                         set_color(button_num, Color.ACTIVE)
 
-                next_beat = current_beat + 1
                 if next_beat in self.prompts:
                     for button_num in self.prompts[next_beat]:
                         set_color(button_num, Color.HINT)
 
+                for button_num in buttons:
+                    if current_beat not in self.prompts or button_num not in self.prompts[current_beat]:
+                        if next_beat not in self.prompts or button_num not in self.prompts[next_beat]:
+                            turn_off(button_num)
+
+                self.last_updated = current_beat
+
+                # TODO: Check if there were any prompts that were not triggered.
+
+                
             if ser.inWaiting() > 0:
                 incoming = ser.read()
                 action_num = ord(incoming) - 48
