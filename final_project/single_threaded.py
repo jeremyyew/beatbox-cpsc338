@@ -51,7 +51,7 @@ class Game:
         self.BEAT_TIME_MS = 1000 * 60/tempo
         self.last_updated = -1
         self.correct = 0
-        self.missed = 0
+        self.wrong = 0
         self.duration_beats = duration_beats
 
     def start(self):
@@ -94,20 +94,19 @@ class Game:
                 #     self.button_released(action_num - 16)
 
         print("CORRECT:", self.correct)
-        print("MISSED:", self.missed)
-        print("FINAL SCORE:", self.correct - self.missed)
+        print("WRONG:", self.wrong)
+        print("FINAL SCORE:",self.correct - self.wrong)
 
     def button_pressed(self, button_num, current_beat):
-        print(
-            f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
-        new_color = Color.WRONG             # Wrong if you press and you weren't supposed to
+        print(f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
         if current_beat in self.prompts and button_num in self.prompts[current_beat]:
-            # TODO: Remove prompt so we can't trigger it again.
             # Record score.
             self.correct += 1
-
             new_color = Color.CORRECT          # Correct when pressed after prompt
-
+        else:
+            self.wrong += 1
+            new_color = Color.WRONG             # Wrong if you press and you weren't supposed to
+            
         set_color(button_num, new_color)
 
     # def button_released(self, button_num):
