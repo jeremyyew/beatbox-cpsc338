@@ -28,13 +28,10 @@ class Color(Enum):
 
 
 def set_color(button_num, color):
-    # button_states[button_num] = color
-    # print("lighting up:", button_num, color, button_num + 48 + 16 * color.value)
     ser.write(bytes(chr(button_num + 48 + 16 * color.value), 'utf-8'))
 
 
 def turn_off(button_num):
-    # print("turning off:", button_num)
     ser.write(bytes(chr(button_num + 48 + 16 * Color.OFF.value), 'utf-8'))
 
 
@@ -49,11 +46,12 @@ class Game:
         self.wrong = 0
         self.duration_beats = duration_beats
 
+
     def start(self):
         music.play()
         self.start_time = time.time()
         current_beat = 0
-        # print("Song start time:", self.start_time)
+
         while current_beat <= self.duration_beats:
             now_ms = (time.time() - self.start_time) * 1000
             current_beat = now_ms // self.BEAT_TIME_MS
@@ -62,7 +60,7 @@ class Game:
             if current_beat > self.last_updated:
                 curr_prompts = self.prompts.get(current_beat)
                 next_beat = current_beat + 1
-                print("BEAT", current_beat, curr_prompts)
+                # print("BEAT", current_beat, curr_prompts)
 
                 if current_beat in self.prompts:
                     # Update.
@@ -79,21 +77,17 @@ class Game:
                             turn_off(button_num)
 
                 self.last_updated = current_beat
-
-                # TODO: Check if there were any prompts that were not triggered.
-
                 
             if ser.inWaiting() > 0:
                 incoming = ser.read()
                 action_num = ord(incoming) - 48
                 if (action_num < 16):
                     self.button_pressed(action_num, current_beat)
-                # else:
-                #     self.button_released(action_num - 16)
 
         print("CORRECT:", self.correct)
         print("WRONG:", self.wrong)
         print("FINAL SCORE:",self.correct - self.wrong)
+
 
     def button_pressed(self, button_num, current_beat):
         print(f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
@@ -107,15 +101,10 @@ class Game:
             
         set_color(button_num, new_color)
 
-    # def button_released(self, button_num):
-    #     # print("released:", button_num)
-    #     pass
-
 
 ser = serial.Serial(PORT, 115200, timeout=0)
 all_songs = get_prompts()
 info = all_songs['firefly']
-
 
 if len(sys.argv) > 1:
     if sys.argv[1] not in all_songs:
@@ -128,9 +117,6 @@ print('Initializing...')
 buttons = range(0, 16)
 
 time.sleep(3)  # allow time to initalize serial (restarts sketch)
-
-
-
 
 game = Game(title=info['song_file'], tempo=info['tempo'],
             prompts=info['prompts'], duration_beats=info['duration'])

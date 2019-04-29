@@ -4,19 +4,8 @@ import threading
 import serial
 from enum import Enum
 
-# TODO:
-# Sat Night:
-# -x circuit diagram
-# - poster
-
-# Sun:
-# - transcribe a song
-# - second song/game state?
-# - enclosure
-# - print poster
 PORT = '/dev/cu.usbmodem1421'
 music = pygame.mixer.music
-
 
 class Color(Enum):
     OFF = 0
@@ -27,13 +16,10 @@ class Color(Enum):
 
 
 def set_color(button_num, color):
-    # button_states[button_num] = color
-    # print("lighting up:", button_num, color, button_num + 48 + 16 * color.value)
     ser.write(bytes(chr(button_num + 48 + 16 * color.value), 'utf-8'))
 
 
 def turn_off(button_num):
-    # print("turning off:", button_num)
     ser.write(bytes(chr(button_num + 48 + 16 * Color.OFF.value), 'utf-8'))
 
 
@@ -55,7 +41,6 @@ class Game:
 
         toggle = 0
 
-        # print("Song start time:", self.start_time)
         while current_beat <= self.duration_beats:
             now_ms = (time.time() - self.start_time) * 1000
             current_beat = now_ms // self.BEAT_TIME_MS
@@ -70,9 +55,7 @@ class Game:
                 else:
                     set_color(1, Color.WRONG)
                 toggle += 1
-
-                # TODO: Check if there were any prompts that were not triggered.
-
+                
                 for button_num in buttons:
                     turn_off(button_num)
 
