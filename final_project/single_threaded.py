@@ -4,6 +4,7 @@ import threading
 import serial
 from enum import Enum
 from prompts import get_prompts
+import sys
 
 # TODO:
 # Sat Night:
@@ -17,11 +18,6 @@ from prompts import get_prompts
 # - print poster
 PORT = '/dev/cu.usbmodem1421'
 music = pygame.mixer.music
-
-fireflies = get_prompts()
-fireflies_prompts = fireflies['prompts']
-fireflies_duration = fireflies['duration']
-
 
 class Color(Enum):
     OFF = 0
@@ -117,12 +113,25 @@ class Game:
 
 
 ser = serial.Serial(PORT, 115200, timeout=0)
+all_songs = get_prompts()
+info = all_songs['firefly']
+
+
+if len(sys.argv) > 1:
+    if sys.argv[1] not in all_songs:
+        print('Unknown song')
+        exit()
+    else:
+        info = all_songs[sys.argv[1]]
+
 print('Initializing...')
 buttons = range(0, 16)
 
 time.sleep(3)  # allow time to initalize serial (restarts sketch)
 
 
-game = Game(title='sounds/fireflies.mp3', tempo=90,
-            prompts=fireflies_prompts, duration_beats=fireflies_duration)
+
+
+game = Game(title=info['song_file'], tempo=info['tempo'],
+            prompts=info['prompts'], duration_beats=info['duration'])
 game.start()

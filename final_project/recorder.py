@@ -3,7 +3,6 @@ import time
 import threading
 import serial
 from enum import Enum
-from prompts import get_prompts
 
 # TODO:
 # Sat Night:
@@ -17,10 +16,6 @@ from prompts import get_prompts
 # - print poster
 PORT = '/dev/cu.usbmodem1421'
 music = pygame.mixer.music
-
-fireflies = get_prompts()
-fireflies_prompts = fireflies['prompts']
-fireflies_duration = fireflies['duration']
 
 
 class Color(Enum):
@@ -109,6 +104,6 @@ time.sleep(3)  # allow time to initalize serial (restarts sketch)
 
 recording = {}
 
-game = Game(title='sounds/fireflies.mp3', tempo=90,
-            prompts=fireflies_prompts, duration_beats=30)
+game = Game(title='sounds/sucker.mp3', tempo=70,
+            prompts=None, duration_beats=75)
 game.start()
