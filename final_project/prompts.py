@@ -1,5 +1,6 @@
 import sucker_prompts
 import firefly_prompts
+import shape_of_you_prompts
 
 
 def process_prompts(unprocessed_prompts):
@@ -24,4 +25,5 @@ def get_prompts():
     return {
         'firefly': process_prompts(firefly_prompts.get_unprocessed_prompts()),
         'sucker': sucker_prompts.get_song_prompts(),
+        'shape_of_you': process_prompts(shape_of_you_prompts.get_unprocessed_prompts()),
     }
