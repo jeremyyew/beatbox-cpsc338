@@ -1,5 +1,0 @@
-future==0.17.1
-iso8601==0.1.12
-pygame==1.9.6
-pyserial==3.4
-PyYAML==5.1
