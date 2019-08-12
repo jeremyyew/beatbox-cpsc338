@@ -103,8 +103,8 @@ calculate and display final score
 ## Information poster 
 ![Poster](docs/button_hero_poster.png)
 
-## Circuit Schematic
-![Schematic](docs/circuit_diagram.png)
+## Circuit schematic
+<img src="docs/circuit_diagram.png" width="200">
 
 ## Bill of materials
 - Adafruit NeoTrellis RGB Driver PCB for 4x4 Keypad (RGB LEDs included) https://www.adafruit.com/product/3954 
