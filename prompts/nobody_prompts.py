@@ -15,5 +15,5 @@ def get_song_prompts():
         },
        'duration': 145,
        'tempo': 98,
-       'song_file': 'sounds/nobody.mp3'
+       'song_file': 'nobody.mp3'
     }

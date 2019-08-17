@@ -3,10 +3,10 @@ import time
 import threading
 import serial
 from enum import Enum
-from prompts import get_prompts
+from prompts.prompts import get_prompts
 import sys
+from config import USB_PORT, SONGS_PATH
 
-PORT = '/dev/cu.usbmodem141301'
 music = pygame.mixer.music
 
 
@@ -29,7 +29,7 @@ def turn_off(button_num):
 class Game:
     def __init__(self, title, tempo, prompts, duration_beats):
         pygame.init()
-        music.load(title)
+        music.load(SONGS_PATH + '/' + title)
         self.prompts = prompts
         self.BEAT_TIME_MS = 1000 * 60/tempo
         self.last_updated = -1
@@ -76,10 +76,10 @@ class Game:
 
         possible = sum([len(beat_prompt)
                         for beat_prompt in self.prompts.values()])
-        print("CORRECT:", self.correct, "/", possible)
-        print("WRONG:", self.wrong)
+        print("CORRECT NOTES:", self.correct, "/", possible)
+        print("WRONG NOTES:", self.wrong)
 
-        print("FINAL SCORE:", round(((self.correct - self.wrong) / possible) * 100))
+        print(f"FINAL SCORE: {round(((self.correct - self.wrong) / possible) * 100)}%")
 
     def button_pressed(self, button_num, current_beat):
         # print(f'BEAT {current_beat} pressed {button_num} prompts {self.prompts.get(current_beat)}')
@@ -94,7 +94,7 @@ class Game:
         set_color(button_num, new_color)
 
 
-ser = serial.Serial(PORT, 115200, timeout=0)
+ser = serial.Serial(USB_PORT, 115200, timeout=0)
 all_songs = get_prompts()
 info = all_songs['firefly']
 

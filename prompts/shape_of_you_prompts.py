@@ -45,5 +45,5 @@ def get_unprocessed_prompts():
         'prompts': prompts,
         'duration': 178,
         'tempo': 101,
-        'song_file': 'sounds/shape_of_you.mp3'
+        'song_file': 'shape_of_you.mp3'
     }

@@ -4,5 +4,5 @@ def get_song_prompts():
                         59.0: [15, 8], 60.0: [9, 14], 61.0: [8], 62.0: [11], 63.0: [12], 64.0: [15], 66.0: [10, 9]},
             'duration': 68,
             'tempo': 70,
-            'song_file': 'sounds/sucker.mp3'
+            'song_file': 'sucker.mp3'
             }

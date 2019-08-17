@@ -18,7 +18,7 @@ Your final score will be printed on the screen. Have fun!
 Connect Beatbox and laptop via USB. 
 Run `python game.py <song_name>`, e.g. `python game.py firefly`. 
 
-Songs included: 
+Songs included: (found in `/prompts`)
 - `firefly`: Fireflies by Owl City (Difficulty: Easy)
 - `sucker`: Sucker by Jonas Brothers (Difficulty: Medium)
 - `nobody`: Nobody by James Arthur, Martin Jensen (Difficulty: Hard)

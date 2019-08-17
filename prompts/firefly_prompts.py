@@ -44,5 +44,5 @@ def get_unprocessed_prompts():
         'prompts': firefly_prompts,
         'duration': 160,
         'tempo': 90,
-        'song_file': 'sounds/firefly.mp3'
+        'song_file': 'firefly.mp3'
     }

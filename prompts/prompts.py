@@ -1,7 +1,7 @@
-import sucker_prompts
-import firefly_prompts
-import shape_of_you_prompts
-import nobody_prompts
+from . import sucker_prompts
+from . import firefly_prompts
+from . import shape_of_you_prompts
+from . import nobody_prompts
 
 
 def process_prompts(unprocessed_prompts):
