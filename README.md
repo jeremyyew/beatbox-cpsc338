@@ -6,8 +6,9 @@ A highly addictive rhythm game with very aesthetic and squishable buttons. Hit t
 ## Demo video (turn sound on)
 *Content warning: rapidly flashing lights.*
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/BtYXU2IIU3U" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+Song: Nobody by James Arthur, Martin Jensen. 
 
+[![Beatbox demo](http://img.youtube.com/vi/BtYXU2IIU3U/0.jpg)](https://www.youtube.com/watch?v=BtYXU2IIU3U "Beatbox demo")
 
 
 ## Game instructions
