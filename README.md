@@ -1,8 +1,14 @@
 # beatbox-cpsc338
+![Content warning: rapidly flashing lights.](docs/demo.gif)
+
 A highly addictive rhythm game with very aesthetic and squishable buttons. Hit the buttons as they light up in time to the music! 
 
-## Demo 
-TODO.
+## Demo video (turn sound on)
+*Content warning: rapidly flashing lights.*
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/BtYXU2IIU3U" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
 
 ## Game instructions
 Press the buttons in beat to the music. Some patterns will repeat but get more complicated as the song progresses. 
@@ -10,7 +16,7 @@ Press the buttons in beat to the music. Some patterns will repeat but get more c
 - When a button turns **dark blue**, it's hinting that it's about to turn active in the next beat. 
 - When a button turns **light blue**, it's active, so hit that button within that beat to score a point. 
   - If you pressed it in time, it will turn **purple**.
-    Too early or too late and it will turn **red**, and you lose a point. 
+  - Too early or too late and it will turn **red**, and you lose a point. 
 
 Your final score will be printed on the screen. Have fun!
 
@@ -23,7 +29,6 @@ Songs included: (found in `/prompts`)
 - `sucker`: Sucker by Jonas Brothers (Difficulty: Medium)
 - `nobody`: Nobody by James Arthur, Martin Jensen (Difficulty: Hard)
 - `shape_of_you`: Shape of You by Ed Sheeran, Galantis Remix (Difficulty: Hard)
-
 
 # Highlights 
 ## Message system between CPU and Arduino 
@@ -51,32 +56,74 @@ We have 16 buttons, and 5 possible actions (`OFF`, `WRONG`, `ACTIVE`,`HINT`, and
 - `48-63`: set button `N` to `HINT` (dark blue).
 - `64-79`: set button `N` to `CORRECT` (purple).
 ## Composing new song sequences 
-### Manual composing: sequence notation
-Every prompt lasts one beat, and prompts can be inserted at any beat.
+### Sequence representation
+We want a way to represent an exactly timed sequence of prompts, i.e. the buttons lighting up. We couldn't find relevant examples online so we had to design it ourselves. 
+
+Our requirements: 
+- It should be **readable, writable, and modular**. This will make it easier to write new songs sequences, both for us and for any user. 
+- For example, we don't want a sparse array, which would be hard to read and modify. 
+- Neither do we want to label every single prompt with a timestamp, or copy-paste repeated segments, which would be hard to write and modify as well. Inserting one beat would mean re-labelling all following beats. 
+- Even if the final data read by the program is 'ugly', we want a preprocessed version that is 'pretty'.
+
+Thus, we implement a simple **beat-timed, interval-based representation**. 
+
+First, since every prompt will naturally be in sync to the beat of the song, we abstract over different song speeds by obtaining the particular beat-time of the song. We use the **tempo** of the song, usually recorded as beats-per-minute (sometimes in the song file, sometimes found online) to calculate the **duration of each beat in milliseconds**. This allows us to keep track of which beat we are currently on at runtime, and light up the corresponding buttons for that beat. 
+
+```python
+self.BEAT_TIME_MS = 1000 * 60/tempo
+current_beat = now_ms // self.BEAT_TIME_MS
 ```
-prompts = {
-   // beat : button numbers
-   0: [0, 4],
-   2: [1, 2], // On beat 2, prompt buttons 1 and 2.
-   8: [0]
-   10: [1, 2, 3, 5]
-   ...
-}
+For example, a 3-minute song with 120BPM will have beats of 500ms each, and a total of 360 beats.  
+
+Still, this requires every beat to be labeled `0` to `359`, which is annoying. Thus, we let preprocessed subsequences (or, "intervals") of beats be implicitly consecutive, as long as the interval itself is labeled by its starting beat; then we simply define a processor that labels every beat in the interval consecutively. Beats with no prompts, or 'empty' beats, may then be either represented by a `None`, or implicitly by the gaps in between the intervals. 
+
+Here is an example song prompt file, from [prompts/firefly_prompts.py](prompts/firefly_prompts.py), which completely describes the song sequence and required metadata. 
+The first interval is the `intro`, to be inserted at beat `0`; the first beat `None` means an empty beat; the second beat `[13,14]` means buttons 13 and 14 should prompt, and so on. 
+```python
+def get_preprocessed_prompts():
+    intro = [
+        None, [13, 14], None, [12, 15],
+        None, [9, 10], None, [8, 11],
+        None, [13, 14], None, [12, 15],
+        None, [9, 10], None, [8, 11],
+        # ...
+    ]
+    verse = [
+        [5, 6], None, [4, 7], [8, 11],
+        [4, 7], None, [8, 11], [12, 15],
+        [8, 11], None, [4, 7], [8, 11],
+        [4, 7], None, [8, 11], [12, 15],
+        # ...
+    ]
+    chorus = [
+        [5, 10], [6, 9], [4, 11], [8, 7],
+        [5, 10], [6, 9], [4, 11], [8, 7],
+        [0, 15], None, [3, 12], None,
+        [1, 14], None, [13, 2], None,
+        # ...
+    ]
+    firefly_prompts = {
+        0: intro, 32: verse, 64: chorus,
+        96: verse, 128: chorus,
+    }
+    return {
+        'prompts': firefly_prompts,
+        'duration': 160, 'tempo': 90,
+        'song_file': 'firefly.mp3'
+    }
 ```
+Notice that the verse and chorus are easily repeated, and all intervals may be easily rearranged. The intervals here are injected at 32-beat intervals, which happens to be their exact length, but there might be other cases which require irregular or non-consecutive intervals. 
+
+Also, in the song sequences we wrote, every prompt lasts exactly one beat, but it would be trivial to implement longer or shorter prompt durations. 
 
 ### Auto-compose: write new sequences by playing them out 
-TODO.
+We also implemented an "auto-compose" feature which lets the user write prompts for new songs by playing them out physically on the device (see [recorder.py](recorder.py)), thus avoiding the manual work of mentally translating button numbers, or counting beats. 
 
-# Development 
-## Goals 
-Build a simple music rhythm game in which a sequence of buttons must be pressed in time to the music being played. Similar to Tap Tap Revenge/Guitar Hero/Dance Dance Revolution, but with a LED-lit button keypad, to combine visual and audio feedback with physical buttons.
+The device records a sequence of button presses, which may be out of time, and 'syncs' them by labelling each one as occuring one beat after another. It then prints them out. These can be easily copy-pasted to form an entire new song.
 
-## Basic requirements:
-- Play music track
-- Light up sequence of buttons in time to music
-- Change light color and record score if button is pressed at correct time
+Both the songs 'Nobody' and 'Sucker' were recorded this way. 
 
-## Implementation
+## Implementation details
 1. Set up I2C communication between Arduino and NeoTrellis keypad. 
 2. Arduino polls button state and lights up buttons on keypad with Trellis library.
 3. Set up serial communication between Arduino and PC, using `Serial.write()` on Arduino and `pyserial` for PC.
@@ -84,7 +131,7 @@ Build a simple music rhythm game in which a sequence of buttons must be pressed 
 5. PC runs game driver code, telling the Arduino which buttons to light up, while Arduino tells PC when buttons are pressed. 
 6. Driver code processes data object to play notes in time to music.
 
-## Game driver pseudocode
+### Game driver pseudocode
 ```
 setup serial communication
 load song file and button prompts
@@ -100,7 +147,7 @@ for duration of song:
 calculate and display final score
 ```
 
-## Information poster 
+## Project poster 
 ![Poster](docs/button_hero_poster.png)
 
 ## Circuit schematic
